@@ -1,0 +1,20 @@
+
+/*
+  Model of ticket data
+*/
+
+var mongoose = require('mongoose'),
+    Schema   = mongoose.Schema;
+
+var dataSchema  = new Schema({
+
+  ticketNum:   { type: String },
+  agentState:  { type: String },
+  extension:   { type: String },
+  callId:      { type: String },
+  date:        { type: Date   }
+
+});
+
+module.exports = mongoose.model('ticketData', dataSchema);
+

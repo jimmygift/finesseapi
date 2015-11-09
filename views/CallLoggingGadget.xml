@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module>
+
+<ModulePrefs title="Asignar Ticket"
+        description="Call Logging WebService" testPref01="Test String 01">
+
+
+    <Require feature="settitle" />
+    <Require feature="dynamic-height" />
+    <Require feature="pubsub-2" />
+	<Require feature="setprefs" />
+</ModulePrefs>
+
+<Content type="html">
+<![CDATA[
+    <!DOCTYPE html>
+    <!-- Styling -->
+    <link rel="stylesheet" href="stylesheets/CallLoggingGadget.css" type="text/css" />
+
+    <!-- jQuery 1.5 -->
+    <script type="text/javascript" src="javascripts/jquery-1.9.1.min.js"></script>
+    
+    <!-- Finesse Library -->
+    <script type="text/javascript" src="javascripts/finesse-10.5.1.js"></script>
+
+
+    <script type="text/javascript" src="javascripts/restRequests65.js"></script>
+
+    <!-- Gadget Business Logic -->
+    <script type="text/javascript" src="javascripts/CallLoggingGadget65.js"></script>
+
+    <body>
+
+    <!-- Gadget UI  -->
+    <div>
+        <br>	
+        <!-- Tag call with ticket number  -->
+	<fieldset id="ticket">
+	  <legend>Ticket</legend>
+          <div id="tn">Ticket:  <input type="text" id="ticketNum" />  </div>
+          <button onClick="finesse.modules.CallLoggingGadget.getTicket();">Asignar</button>
+      	</fieldset>
+    </div>
+    </body>
+
+    <script type="text/javascript">
+    gadgets.HubSettings.onConnect = function () {
+        finesse.modules.CallLoggingGadget.init();
+    };
+
+    </script>
+]]>
+</Content>
+</Module>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module>
+
+<ModulePrefs title=" "
+    description="Call Logging WebService" testPref01="Test String 01" height="800">
+    <Require feature="settitle" />
+    <Require feature="dynamic-height" />
+    <Require feature="minimessage"/>
+    <Require feature="setprefs"/>
+    <Require feature="views"/>
+    <Require feature="pubsub-2"/>
+
+    <Optional feature="content-rewrite">
+	<Param name="expires">1</Param>
+    </Optional>
+</ModulePrefs>
+
+<!-- Parameters passed from the server via NodeJS template to the client side scripts -->
+<UserPref name="gadgetServerHost" displayName="gadgetServerHost" datatype="string" default_value="{{gadgetServerHost}}" />
+<UserPref name="gadgetServerPort" displayName="gadgetServerPort" datatype="string" default_value="{{gadgetServerPort}}" />
+
+<Content type="html">
+<![CDATA[
+    <!DOCTYPE html>
+
+    <!-- Bootstrap 3.3 CSS -->
+    <link rel="stylesheet" href="vendor/css/bootstrap.min.css" type="text/css"/>
+
+    <!-- Styling -->
+    <link rel="stylesheet" href="vendor/css/Gadget.css" type="text/css" />
+ 
+    <!-- JQuery 1.10 -->
+    <script type="text/javascript" src="vendor/js/jquery.min.js"></script>
+
+    <!-- Bootstrap 3.3 JS  -->
+    <script type="text/javascript" src="vendor/js/bootstrap.min.js"></script>
+
+    <!-- Cisco Finesse Library -->
+    <script type="text/javascript" src="vendor/js/finesse-10.5.1.js"></script>
+
+    <script type="text/javascript" src="js/code_{{rndString}}.js"></script>
+    <script type="text/javascript" src="js/restRequests_{{rndString}}.js"></script>
+    <script type="text/javascript" src="js/ui_{{rndString}}.js"></script>
+
+    <!-- Gadget Business Logic -->
+    <script type="text/javascript" src="js/CiscoFinesseGadgets_{{rndString}}.js"></script>
+
+    <body class="claro">
+    <!-- START Gadget UI -->
+    {{{body}}}
+    <!-- END Gadget UI -->  
+    <body>
+
+    <script type="text/javascript">
+    gadgets.HubSettings.onConnect = function () {
+        finesse.modules.CallLoggingGadget.init();
+    };
+    </script>
+
+]]>
+
+</Content>
+</Module>
+

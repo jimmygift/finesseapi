@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module>
+
+<ModulePrefs 
+    title=" "
+    description="Call Transfer Gadget" 
+    height="100"
+    scrolling="true">
+
+      <Require feature="settitle" />
+      <Require feature="dynamic-height" />
+      <Require feature="minimessage"/>
+      <Require feature="setprefs"/>
+      <Require feature="views"/>
+      <Require feature="pubsub-2"/>
+
+      <Optional feature="content-rewrite">
+	<Param name="expires">1</Param>
+      </Optional>
+</ModulePrefs>
+
+<!-- Parameters passed from the server via NodeJS template to the client side scripts -->
+<UserPref name="gadgetServerHost" displayName="gadgetServerHost" datatype="string" default_value="{{gadgetServerHost}}" />
+<UserPref name="gadgetServerPort" displayName="gadgetServerPort" datatype="string" default_value="{{gadgetServerPort}}" />
+<UserPref name="vxmlServerHost"   displayName="vxmlServerHost"   datatype="string" default_value="{{vxmlServerHost}}" />
+<UserPref name="vxmlServerPort"   displayName="vxmlServerPort"   datatype="string" default_value="{{vxmlServerPort}}" />
+<UserPref name="vxmlServerPath"   displayName="vxmlServerPath"   datatype="string" default_value="{{vxmlServerPath}}" />
+<UserPref name="transferDirn"     displayName="transferDirn"     datatype="string" default_value="{{transferDirn}}" />
+
+<Content type="html">
+<![CDATA[
+    <!DOCTYPE html>
+
+    <!-- Bootstrap 3.3 CSS -->
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" type="text/css"/>
+
+    <!-- Styling -->
+    <link rel="stylesheet" href="/stylesheets/CallLoggingGadget.css" type="text/css" />
+ 
+    <!-- JQuery 1.10 -->
+    <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+
+    <!-- Bootstrap 3.3 JS  -->
+    <script type="text/javascript" src="/javascripts/bootstrap.min.js"></script>
+
+    <!-- Cisco Finesse Library -->
+    <script type="text/javascript" src="/javascripts/finesse-10.5.1.js"></script>
+
+    <!-- Gadget Business Logic -->
+    <script type="text/javascript" src="/javascripts/restRequests_{{rndString}}.js"></script>
+    <script type="text/javascript" src="/javascripts/CallTransferGadget_{{rndString}}.js"></script>
+
+    <body class="claro">
+    <!-- START Gadget UI -->
+    {{{body}}}
+    <!-- END Gadget UI -->  
+    <body>
+
+    <script type="text/javascript">
+    gadgets.HubSettings.onConnect = function () {
+        finesse.modules.CallTransferGadget.init();
+    };
+    </script>
+
+]]>
+
+</Content>
+</Module>
+

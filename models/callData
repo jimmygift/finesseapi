@@ -1,0 +1,37 @@
+
+/*
+  Model of call data
+*/
+
+var mongoose = require('mongoose'),
+    Schema   = mongoose.Schema;
+
+var callSchema  = new Schema({
+  callId:      { type: String },
+  callType:    { type: String },
+  fromAddress: { type: String },
+  toAddress:   { type: String },
+  callState:   { type: String },
+  DNIS:        { type: String },
+  date:        { type: Date   }
+});
+
+module.exports = mongoose.model('callData', callSchema);
+
+
+/*
+  Model of call metadata
+*/
+
+var metadataSchema  = new Schema({
+  agentId:     { type: String },
+  agentExt:    { type: String },
+  fieldName:   { type: String },
+  fieldValue:  { type: String },
+  date:        { type: Date   }
+});
+
+module.exports = mongoose.model('callMetadata', metadataSchema);
+
+
+

@@ -1,0 +1,14 @@
+
+{{#if showTitle}}
+    <h1>Home</h1>
+{{/if}}
+
+    <div>
+        <br>
+        <!-- Tag call with ticket number  -->
+        <fieldset id="ticket">
+          <legend>Ticket</legend>
+          <div id="tn">Ticket:  <input type="text" id="ticketNum" />  </div>
+          <button onClick="finesse.modules.CallLoggingGadget.getTicket();">Asignar</button>
+        </fieldset>
+    </div>

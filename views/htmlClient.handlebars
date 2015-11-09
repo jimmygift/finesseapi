@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Call Tagging Service</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
+  <link rel="stylesheet" href="stylesheets/style.css">
+  <script src="javascripts/jquery.min.js"></script>
+  <script src="javascripts/bootstrap.min.js"></script>
+  <script src="javascripts/handlebars-v3.0.3.js" ></script>
+</head>
+<body>
+
+<!--  HTML Datastore -->
+<div id='datastore01' data-extension='{{extension}}'></div>
+<div id='datastore02' data-callId=''></div>
+<!-- ./HTML Datastore -->
+
+<!-- MODALS -->
+<div class="modal fade" id="my-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title"> &nbsp; </h4>
+      </div>
+      <div class="modal-body">
+        <p>Sending data to server ..</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<!-- ./MODALS -->
+
+
+<div class="container">
+
+ <div class="panel panel-default">
+
+  <div class="panel-heading">
+    <h3 class="panel-title">Support Ticket Admin</h3>
+  </div>
+
+
+  <div class="panel-body">
+ 
+
+
+<div>
+
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    
+<p class="navbar-text">Assign ticket to contact <strong><span id="contactId">current call</span></strong></p>
+
+ <form class="navbar-form navbar-left" role="search">
+  <div class="form-group">
+    <input type="text" class="form-control" placeholder="new ticket number" id="ticketnumber">
+  </div>
+  <button id="submit" type="button" class="btn btn-primary">OK</button>
+
+</form>
+
+
+  </div>
+</div>
+
+</div>
+
+  <!-- TABLE CONTENT -->
+  <div id="tablePlaceholder"></div> 
+  <!-- ./TABLE CONTENT -->
+
+</div>
+
+  <div class="panel-footer">
+  </div>
+
+  <!-- ALERTS -->
+  <div class="alert alert-danger" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Error submitting ticket</span>
+  Error submitting ticket
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  </div>
+
+  <div class="alert alert-success" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only"></span>
+  <span id="message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  </div>
+
+  <div class="alert alert-warning alert-dismissible" role="alert">
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Server down</span>
+  <strong>Warning!</strong>   Server down
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  </div>
+  <!-- ./ALERTS -->
+
+</div>
+
+</div>
+
+<script src="javascripts/code.js"></script>
+</body>
+</html>
+

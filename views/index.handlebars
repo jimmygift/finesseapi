@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PTU - Pago de Utilidades 2014</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+
+  </head>
+
+  <body>
+    <div class="container">
+      <h3>Pago de Utilidades 2014</h3>
+      <h4>Subir Archivo de Referencias</h4>
+      Solo se acepta formato CSV, no usar formato Excel.
+
+      <form action="upload" method="post" enctype="multipart/form-data" class="well form-search">
+        <input  type="file"   name="file" value="Seleccionar" />
+        <button type="submit" name="submit"/>Upload</button>
+        <br/>
+        <br/>&Uacute;ltima actualizaci&oacute;n:
+      </form>
+
+      <h4>Conteo de Registros en Archivo de Referencias</h4>
+
+      <form class="well form-search" >
+
+      <table class="table table-striped table-bordered">
+        <tr>
+        <td>
+        <label>Ex-empleados con PTU verificado  </label>
+        </td>
+        <td><%= countVerified %></td>
+        </tr>
+
+        <tr>
+        <td>
+        <label>Ex-empleados con PTU sin verificar  &nbsp; </label>
+        </td>
+        <td><%= countNonVerified %></td>
+        </tr>
+
+        <tr>
+        <td><label>Todos los ex-empleados</label></td>
+        <td><%= countAll %></td>
+        </tr>
+      </table>
+      &Uacute;ltima consulta de usuario:
+      </form>
+
+
+      <h4>Exportar Archivo de Referencias</h4>
+      Exportar los registros en formato CSV.
+      <form class="well form-search">
+
+      <table>
+        <tr>
+        <td>
+        <label>Ex-empleados con PTU verificado  </label>
+        </td>
+        <td><a href="getVerified">Exportar</a></td>
+        </tr>
+
+        <tr>
+        <td>
+        <label>Ex-empleados con PTU sin verificar  &nbsp; </label>
+        </td>
+        <td><a href="getNonVerified">Exportar</a></td>
+        </tr>
+
+        <tr>
+        <td><label>Todos los ex-empleados </label>
+        <td><a href="getAll">Exportar</a></td>
+        </tr>
+      </table>
+      </form>
+
+
+
+    </div>
+    <!-- JavaScript se situa al final del documento para que la página cargue mas rápido -->
+    <!-- Optional: Incluir la librería de jQuery -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+  </body>
+</html>
