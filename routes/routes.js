@@ -8,7 +8,8 @@ var express = require('express'),
 
 var router  = express.Router(),
     CallDataModel   = require('../controllers/CallData'),
-    TicketDataModel = require('../controllers/TicketData');
+    TicketDataModel = require('../controllers/TicketData'),
+    RemoteLoggingModel = require('../controllers/RemoteLoggingData');
 
 // Setup nconf to use (in-order):
 //   1. Command-line arguments
@@ -23,8 +24,16 @@ var clientConfig = { gadgetServerHost: nconf.get('gadgetHost'),
                      gadgetServerPort: nconf.get('gadgetPort') },
     rndString    =   utils.randomString(5),
     serverConfig = { rndString: rndString };
- 
-// Call Processing --------------------------
+
+// Remote logging for Finesse Gadgets ------------------------------------------
+
+router.post('/finesseLogging', function(req,res){
+
+  req.date = new Date();
+  RemoteLoggingModel.add(req, res);
+});
+
+// Call Processing -------------------------------------------------------------
 
 router.post('/calls', function(req, res){
 
@@ -61,7 +70,7 @@ router.post('/tickets', function(req, res){
 });
 
 router.get('/tickets/:id',function(req, res){
-  
+
   TicketDataModel.findById(req, res);
 
 });
@@ -74,50 +83,41 @@ router.get('/tickets',function(req, res){
 
 // Open Social Gadgets HTML ---------------------------------
 
-// Call Logging Gadget
+// Gadget
 router.get('/gadget',function(req, res){
   res.contentType('text/xml');
-  res.render('CallLoggingGadget', { serverConfig:  serverConfig,  
-			     	    gadgetServerHost: nconf.get('gadgetHost'),
-                     	     	    gadgetServerPort: nconf.get('gadgetPort'),
-			     	    layout: 'CallLoggingGadgetDefault'});
+  res.render('CallLoggingGadget', { serverConfig:     serverConfig,
+                                    gadgetTitle:      nconf.get('gadgetTitle'),
+                                    gadgetDesc:       nconf.get('gadgetDesc'),
+                                    gadgetHeight:     nconf.get('gadgetHeight'),
+                                    gadgetScroll:     nconf.get('gadgetScroll'),
+			     	                        gadgetServerHost: nconf.get('gadgetHost'),
+                     	     	        gadgetServerPort: nconf.get('gadgetPort'),
+                                    vxmlServerHost:   nconf.get('vxmlServerHost'),
+                                    vxmlServerPort:   nconf.get('vxmlServerPort'),
+                                    vxmlServerPath:   nconf.get('vxmlServerPath'),
+                                    transferDirn:     nconf.get('vxmlTransferDirn'),
+			     	                        layout: 'CiscoFinesseGadgets'});
 });
-
-
-// Call Transfer Gadget
-router.get('/gadget/CallTransfer',function(req,res){
-  res.contentType('text/xml');
-  res.render('CallTransferGadget', { serverConfig:  serverConfig,  
-			     	     gadgetServerHost: nconf.get('gadgetHost'),
-                     	     	     gadgetServerPort: nconf.get('gadgetPort'),
-                                     vxmlServerHost:   nconf.get('vxmlServerHost'),
-                                     vxmlServerPort:   nconf.get('vxmlServerPort'),
-                                     vxmlServerPath:   nconf.get('vxmlServerPath'),
-                                     transferDirn:     nconf.get('vxmlTransferDirn'),
-                                     layout: 'CallTransferGadgetDefault' });
-});
-
 
 router.get('/home', function (req, res){
-  res.render('home', 
+  res.render('home',
              {layout: false });
 });
-
 
 // Non Open Social (just HTML) client config
 
 router.get('/client',function(req, res){
-
   // just 'bounce back' the parameter on the request back to the client
   //res.json({extension: req.query.extension});
   res.render('htmlClient', {extension: req.query.extension});
-  
+
 });
 
 // Get Server Config -------------------------------
 
 router.get('/serverConfig',function(req, res){
-  
+
   res.status(200).jsonp(serverConfig);
 
 });

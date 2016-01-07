@@ -39,12 +39,12 @@ exports.findById = function(req,res){
 exports.add = function(req, res){
   var params = req.body;
 
-  //logger.info('POST ticketNum:' + params.ticketNum  + ' contactId:' + params.contactId);
+  logger.info('POST ticketNum:' + params.ticketNum  + ' contactId:' + params.contactId);
 
   if (params.contactId && params.ticketNum && (!isNaN(params.contactId))) {
     // We're tagging a previously recorded call contact
     logger.info('Tagging a recorded call. ticketNum:' + params.ticketNum  + ' contactId:' + params.contactId );
-    
+
     // Send the metadata to AQM server
     restReq.tagCall(params,function(err,resp){
       if (err) {
@@ -53,8 +53,15 @@ exports.add = function(req, res){
         res.status(200).jsonp(resp);
       }
     });
-  } else if (params.contactId == 'current call' ){
+  } else if (params.contactId === 'current call' ){
     logger.info('Tagging an active call.  ticketNum:' + params.ticketNum  + ' contactId:' + params.contactId );
+    restReq.deferredCallTagging(params,function(err,resp){
+      if (err) {
+        res.status(500).jsonp(err);
+      } else {
+        res.status(200).jsonp(resp);
+      }
+    });
   } else if (params.callId) {
     console.log('Tagging an active call..');
   }
@@ -68,15 +75,15 @@ exports.add = function(req, res){
     callId:      params.callId,
     date:        req.date
   });
-  
+
   // Save call event data to mongodb
   ticketData.save(function(err){
-    if (err) { 
+    if (err) {
       //return res.send(500, err.message);
     } else {
       //res.status(200).jsonp(ticketData);
     }
-    
+
   });
 };
 
@@ -95,7 +102,7 @@ exports.add = function(req, res){
 // POST
 exports.add_ = function(req,res){
   var params = req.body;
-  
+
   console.log('POST ticketNum:' + params.ticketNum + ' extension:' + params.extension + ' agentState:' + params.state + ' callId:' + params.callId);
 
   var ticketData  = new TicketDataModel
@@ -110,14 +117,14 @@ exports.add_ = function(req,res){
 
   // Ticket data sent to AQM server
   params['ticketInfo'] = { Ticket: {key: 'Ticket', value: params.ticketNum }};
-  
+
   // Save call event data to mongodb
   ticketData.save(function(err){
     if (err) return res.send(500, err.message);
     res.status(200).jsonp(ticketData);
   });
 
-  
+
   // we need an active call
   if (params.callId.length != 0) {
 
@@ -144,16 +151,9 @@ exports.add_ = function(req,res){
       } else if (callEvents.length == 3) {
         // The call is over. Now we can tag the call with metadata on the AQM server.
         console.log('Got 3 call events.');
-        restReq.tagCallWithMetadata(params); 
+        restReq.tagCallWithMetadata(params);
         // Check if the ticket number was sent before the call finished
       }
     });
   };
 };
-
-
-
-
-
-
-

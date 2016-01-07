@@ -1,0 +1,13 @@
+/*
+  Model of log data
+*/
+
+var mongoose = require('mongoose'),
+    Schema   = mongoose.Schema;
+
+var logDataSchema  = new Schema({
+  user:      { type: String },
+  msg:       { type: String }
+});
+
+module.exports = mongoose.model('logData', logDataSchema);

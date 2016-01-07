@@ -13,6 +13,8 @@ results
 config
  
 node_modules
+react/node_modules
+
 npm-debug.log
 routes/uploads
 

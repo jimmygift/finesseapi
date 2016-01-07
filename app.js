@@ -8,11 +8,11 @@ var express = require('express'),
     mongoose     = require('mongoose'),
     bodyParser   = require('body-parser'),
     cookieParser = require('cookie-parser');
-    
+
 var routes = require('./routes/routes'),
     utils  = require('./scripts/utils'),
     logger = require('./scripts/logger.js');
- 
+
 // Setup nconf to use (in-order):
 //   1. Command-line arguments
 //   2. Environment variables
@@ -31,7 +31,7 @@ mongoose.connect(mongoUrl, function(err,res){
     logger.info ('ERROR connecting to: ' + mongoUrl + '. ' + err);
   } else {
     logger.info ('Succeeded. Connected to: ' + mongoUrl);
-  };
+  }
 
 });
 
@@ -43,12 +43,12 @@ mongoose.connect(mongoUrl, function(err,res){
 var hbs = exphbs.create({
   helpers: {
     rndString:  function() { return utils.randomString(5); },
-    cdataStart: function() { return "<![CDATA[" },
-    cdataEnd:   function() { return "]]>" }
+    cdataStart: function() { return "<![CDATA["; },
+    cdataEnd:   function() { return "]]>"; }
   }
 });
 
-app.engine('handlebars', exphbs({defaultLayout: 'CallLoggingGadgetDefault'}));
+app.engine('handlebars', exphbs({defaultLayout: 'CiscoFinesseGadgets'}));
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
@@ -64,8 +64,9 @@ app.use(cookieParser());
 // Remove random string at end of requested file name
 // These requests are proxied first by Finesse server with caching
 // getting on the way. This avoids caching.
+// Also logs every request
 app.use(function (req, res, next) {
-  //console.log('Request URL: ' + req.url);
+  console.log( 'Src: ' + req.connection.remoteAddress + ' Req URL: ' + req.url );
   req.url = req.url.replace(/_\w{5}/, '');
   //console.log('New Request URL:' + req.url);
   next();

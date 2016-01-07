@@ -1,0 +1,309 @@
+Globals: gadgets.io
+
+Create the modulel using the module pattern.
+Get ref to gadgets.io
+A global ref to the _rest obj is created
+
+
+var _rest = function() {
+ _mymakeRequest : function (baseUrl, url, handler, params) {
+    params[this._gadgets.io.RequestParameters.HEADERS] = params[this._gadgets.io.RequestParameters.HEADERS] || {};
+    this._gadgets.io.makeRequest(encodeURI(baseUrl) + url, handler, params);
+    clientLogs.log("io.makeRequest to " + baseUrl + url);
+ }
+
+ _myrestRequest : function (baseUrl,url,options) {}
+
+ _createNewCallLoggingServicesRequest : function (baseUrl, reqUrl, callData, handlers) {
+      var contentBody = "";
+      contentBody = contentBody + "&callId="      + encodeURIComponent(callData.callId);
+      contentBody = contentBody + "&fromAddress=" + encodeURIComponent(callData.fromAddress);
+      contentBody = contentBody + "&toAddress="   + encodeURIComponent(callData.toAddress);
+      contentBody = contentBody + "&callType="    + encodeURIComponent(callData.callType);
+      contentBody = contentBody + "&callState="   + encodeURIComponent(callData.callState);
+      contentBody = contentBody + "&DNIS="        + encodeURIComponent(callData.DNIS);
+
+      handlers = handlers || {};
+       
+      this._myrestRequest( baseUrl, reqUrl, {
+        method: 'POST',
+        success: handlers.success,
+        error:   handlers.error,
+        content: contentBody
+      });
+      return this; 
+    },
+
+ _makeCallLoggingServiceSuccess : function(rsp) {
+    clientLogs.log ("In makeCallLoggingServiceSuccess CallLoggingGadget");
+  },
+
+ _tagCall : function (baseUrl, reqUrl, callData) {
+    this._createNewCallLoggingServicesRequest(baseUrl, reqUrl, callData, {
+      success: this._makeCallLoggingServiceSuccess,
+      error:   this._makeCallLoggingServiceError
+    });
+  },
+
+  // This is the only method that needs to be exported by return  !!
+  _httpRequest: function(method,baseUrl,reqUrl,jsonData,handlers){
+    
+    var handlers = {success: this[handlers.success],
+                    error:   this[handlers.error]};
+
+    this._myrestRequest( baseUrl, reqUrl, {
+        method:  method,
+        success: handlers.success,
+        error:   handlers.error,
+        content: jsonData
+      });
+
+    return this; 
+  }
+    
+}
+
+----------------------------------------------------------------------------------
+Gadget Js Code
+
+// add reference to restObj on module instantiation
+finesse.modules.CallTransferGadget = (function ($,restObj) {
+
+      _postReferral = function(callData){
+        var jsonData = { originalAni: callData.fromAddress,
+                         ani:         callData.extension},
+            handlers = { success: '_handlerSuccessGeneric',
+                         error:   '_handlerErrorGeneric'};
+        restObj._httpRequest('GET',vxmlBaseUrl,vxmlAppPath,jsonData,handlers);
+      },
+
+      _consultCallSuccess = function(rsp){
+        var delay    = 1000,
+            callData = getCallData(originalCallDialog);
+         _postReferral(callData);
+         window.setTimeout(completeTransfer(),delay);
+      },
+
+      completeTransfer = function (dialog) {
+        if (originalCallDialog  === null) {
+	  clientLogs.log("No Dialog to complete call transfer on.");
+	  return;	//code
+        }
+        dialog.requestAction(
+          user.getExtension(),
+	  finesse.restservices.Dialog.Actions.TRANSFER,
+	  {
+	    success : _completeTransferSuccess,
+	    error   : _completeTransferError
+	  });
+      },
+
+return {
+    testMe: function(){},
+     
+    startTransfer : function () {
+      if (_dialog === null) {
+	clientLogs.log("No Dialog to start consult call on.");
+	return;	
+      }
+      
+      _dialog.makeConsultCall(
+        user.getExtension(),
+	transferToExtension,
+	{
+	  success : _consultCallSuccess,
+	  error   : _consultCallError
+	});				
+    },
+
+    init: function(){}
+}
+
+// added restObj ref
+}(jQuery,_rest))
+
+HTML
+---------------------------------------------------------------
+
+
+    <script type="text/javascript" src="/vendor/js/finesse-10.5.1.js"></script>
+    <script type="text/javascript" src="/vendor/js/react.js"></script>
+    <script type="text/javascript" src="/vendor/js/react-dom.js"></script>
+
+    <!-- Custom code -->
+    <script type="text/javascript" src="/js/restRequests_{{rndString}}.js"></script>
+
+    <body>
+    <!-- START Gadget UI -->
+    <div id="thisismydiv">And is all Mine</div>
+    <div id="content"></div>
+    <!-- END Gadget UI -->
+    </body>
+
+    <script type="text/javascript"  src="/js/bundle_{{rndString}}.js"></script>
+
+    <script type="text/javascript">
+
+        /*
+        var MyComponent = React.createClass({
+          render: function() {
+                return (
+                  React.createElement('h1',null,"Hello, world!")
+                );
+          }
+        });
+        */
+
+        React.render(
+          React.createElement(MyComponent, null),document.getElementById('content')
+        );
+
+   </script>
+
+   <script type="text/javascript">
+    gadgets.HubSettings.onConnect = function () {
+        finesse.modules.CallLoggingGadget.init();
+    };
+    </script>
+
+
+-----------------------------------------------------------------
+React Source
+
+import ReactDOM from "react";
+import React    from "react";
+
+var MyComponent = React.createClass({
+    render: function(){
+        return (
+            <h1>Hello, world!</h1>
+        );
+    }
+})
+
+React.render(
+    <MyComponent/>,
+    document.getElementById('content')
+);
+
+
+
+
+
+Get Last AQM Contacts
+restObj._httpRequest('GET',baseUrl,'/getLastContacts',jsonData,handlers);
+
+Post Ticket
+restObj._httpRequest('POST',baseUrl,'/tickets',jsonData,handlers);
+
+Refer Call
+restObj._httpRequest('GET',vxmlBaseUrl,vxmlAppPath,jsonData,handlers);
+
+
+startTransfer()  -- Blind Call. No callbbacks
+
+
+
+--------------------------------------------------------------------
+React Components inside Cisco Finesse
+
+// Non visual components. Bridge between Cisco Finesse and React JS Components
+
+var FinesseStateContainer = React.createClass({ 
+    getInitialState: function(){
+      return { dialogs: this.props.dialogs.getCollection(), 
+	       show: false }
+    },
+
+    handleNewDialog: function(dialog) {},
+  
+    handleEndDialog: function(dialog) {},      
+
+    handleDeleteDialog: function(dialog) {},
+
+    handleAddDialog: function(dialog) {},
+
+    render: function(){
+        return (
+            // I wont display anything by my self. Include other components here
+            <div></div>
+        );
+    }
+})
+
+
+<FinesseStateContainer dialogs=dialogs />
+
+
+
+-------------------
+
+finesse.modules.CallTransferGadget = (function ($) {
+ 
+  var user, dialogs, states, _dialog, dialogActions,
+  handleNewDialog = function(dialog){},
+  handleEndDialog = function(dialog){},
+  handleUserChange = function(userevent){},
+ 
+  handleDialogsLoaded = function() {
+
+   var dialogCollection, dialogId;
+   //Render any existing dialogs
+   dialogCollection = dialogs.getCollection();
+
+   for (dialogId in dialogCollection) {
+      if (dialogCollection.hasOwnProperty(dialogId)) {
+        _handleDialogAdd(dialogCollection[dialogId]);
+      }
+   }
+  },
+
+  _handleDialogAdd = function(dialog) {
+     var callData = getCallData(dialog);
+
+     // Really need to handle this a little better...but this is just a sample.  This doesn't handle multiple calls properly.	  _dialog = dialog;
+        		
+     var callType = _dialog.getMediaProperties().callType;
+
+     if (callType === "CONSULT"){
+
+     } else if (callType==="OTHER_IN"){
+
+     } else if (callType==="ACD_IN"){
+
+     };
+  },
+     
+  handleUserLoad = function(userevent){
+    // Get an instance of the dialogs collection and register handlers for dialog additions and removals
+    dialogs = user.getDialogs( {
+          onCollectionAdd    : handleNewDialog,
+          onCollectionDelete : handleEndDialog,
+          onLoad :             _handleDialogsLoaded
+    });   
+  },  
+
+  return {
+      init: function() {
+        user = new finesse.restservices.User({
+          id: id,
+          onLoad   : _handleUserLoad,
+          onChange : handleUserChange
+        });
+      
+      states = finesse.restservices.User.States;
+      dialogActions = finesse.restservices.Dialog.Actions();
+    }
+  } 
+}
+
+
+Read dialogs collection object from inside React components
+
+
+<CallTransferButton xferNumer="11111"  handlers=eventHandlers />
+
+<CallTagField extensionNumber="16698" currentCall=currentCall previousCalls=previousCalls handlers=eventHandlers />
+
+
+

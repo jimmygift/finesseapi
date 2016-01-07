@@ -56,28 +56,42 @@ Gracias por la informacion. Como te puedo ayudar el dia de hoy ?
 
 var agentSpeechText0102 =  `Gracias por llamar a Enlace.
 Mi nombre es ___.
-Con quien tengo el gusto?
+Con quien tengo el gusto ?
 Para ayudarlo mejor me proporciona su numero de nomina o GPID por favor ?
 Por motivos de seguridad, me puede proporcionar su fecha de nacimiento ?
 Gracias por la informacion. Como te puedo ayudar el dia de hoy ?
 `;
 
-var agentSpeechText03 = `Algo mas en lo que le pueda ayudar ?
+var agentSpeechText02 = `Cuando se presento ese problema
+A que hora marcaste ?
+Enviaste correo a Pepsico Enlace ?
+Haz llamado a enlace sobre este tema anteriormente ?
+Que error te aparece ?
+Lo haz consultado con tu generalista o jefe directo ?
+Cuando entregaste tu Carta de Retencion ?
+A que herramienta estas intentando entrar ?
+Haz tenido faltas o incapacidades recientemente ?
+Te ayudaron a hacer el tramite en tu portal o lo hiciste solo ?
+Ya habias mandado papeleria ? cuando? a donde ?
 Esta llamada se registrara con un ticket numero ___, este no es un ticket adicional, solamente es un registro de su llamada
 `;
 
-var agentSpeechText04 = `Le pido 30 segundos mas de su tiempo para una encuesta muy breve de dos preguntitas para evaluar mi servicio y la resolucion por parte de Servicios al Personal ok ?
-Muchas gracias por llamar a Enlace, estamos a sus ordenes
-`;
-
-var agentSpeechText02 =  `La solucion que nos brinda el area de ___ es ___
+var agentSpeechText03 =  `La solucion que nos brinda el area de ___ es ___
 Todavia no tenemos una respuesta dado que el area sigue trabajando en tu tema, estos procesos normalmente ...
 Si revisamos tu solicitud, para poder solucionarlo por completo requerimos tu apoyo en enviarnos ___
 Por el momento no sera posible ___ dado que por politica el area de ___ establece que ___
-Por lo tanto, requeriremos se comunique ___ y entonces ya recibiremos el dato solicitado, le parece ?
-Entonces en cuanto nos envie el dato, se procesara la solicitud y podremos finalizar su requerimento, ok ?
-Daremos seguimiento al ticket y en cuanto tengamos una respuesta le llegara un correo de notificacion de que se cerro el ticket. Si gusta se puede comunicar con nosotros para revisarlo a detalle, esta bien ?
 `;
+
+var agentSpeechText04 = `Por lo tanto, requeriremos se comunique ___ y entonces ya recibiremos el dato solicitado, le parece ?
+Entonces en cuanto nos envie el dato, se procesara la solicitud y podremos finalizar su requerimento, ok ?
+Daremos seguimiento al ticket y en cuanto tengamos una respuesta le llegará un correo de notificacion de que se cerro el ticket. Si gusta se puede comunicar con nosotros para revisarlo a detalle, esta bien ?
+Algo mas en lo que le pueda ayudar ?
+Esta llamada se registrara con un ticket #___ este no es un ticket adicional, solamente es un registro de su llamada
+`;
+
+var agentSpeechText05 = `
+Le pido 30 segundos mas de su tiempo para una encuesta muy breve de dos preguntitas para evaluar mi servicio y la resolucion por parte de Servicios al Personal ok ?
+Muchas gracias por llamar a Enlace, estamos a sus ordenes`
 
 // <span className="glyphicon glyphicon-user"></span>
 // {agentSpeechText03.split("\n").map(function(i){return (<span>{i}<br/></span>) } ) }
@@ -88,7 +102,6 @@ var AgentSpeech = React.createClass({
 
     return(
         <div>
-        <span className="glyphicon glyphicon-user"></span>
         <p>{textNodes}</p>
         </div>
     );
@@ -110,17 +123,6 @@ var AgentSpeech00 = React.createClass({
   }
 });
 
-var TicketNumber  = React.createClass({
-  render: function(){
-    return(
-      <div>
-        <InputField/>
-        <ReactBootstrap.Button bsStyle="primary">Asignar ticket</ReactBootstrap.Button>
-      </div>
-    );
-  }
-});
-
 var TransferCall  = React.createClass({
   handleClick: function(e) {
     //var handlers = {success:this.onSuccess, error:this.onError};
@@ -137,7 +139,34 @@ var TransferCall  = React.createClass({
       </div>
     );
   }
+});
 
+var TicketNumber  = React.createClass({
+
+  getInitialState: function(){
+    return {
+      ticketNumber: ''
+    };
+  },
+
+  setTicketNumber: function(val){
+    this.state.ticketNumber=val;
+  },
+
+  handleClick: function(e){
+    finesse.modules.CiscoFinesseGadget.setTicketNumber(this.state.ticketNumber);
+    this.state.ticketNumber = '';
+    alert('Ticket asignado');
+  },
+
+  render: function(){
+    return(
+      <div>
+        <InputField onChange={this.setTicketNumber}/>
+        <ReactBootstrap.Button bsStyle="primary" onClick={this.handleClick}>Asignar ticket</ReactBootstrap.Button>
+      </div>
+    );
+  }
 });
 
 var InputField = React.createClass({
@@ -155,11 +184,9 @@ var InputField = React.createClass({
   },
 
   handleChange: function() {
-    // This could also be done using ReactLink:
-    // http://facebook.github.io/react/docs/two-way-binding-helpers.html
-    this.setState({
-      value: this.refs.input.getValue()
-    });
+    var inputValue = this.refs.input.getValue();
+    this.setState({value: inputValue});
+    this.props.onChange(inputValue);
   },
 
   render: function() {
@@ -191,6 +218,7 @@ var TransferButton = React.createClass({
             acdCallUsername: '',
             acdIncomingCall: '',
             callState: '',
+            ticketNumber: ''
            };
   },
 
@@ -246,22 +274,27 @@ var TransferButton = React.createClass({
             <AgentSpeech text={ userIdIsValid(this.state.acdCallUserid) ? agentSpeechText01 : agentSpeechText0102 } />
           </ReactBootstrap.Panel>
         </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Indagacion" eventKey="2">
+        <ReactBootstrap.Panel header="Indagación" eventKey="2">
           <ReactBootstrap.Panel header="Speech">
             <AgentSpeech text={agentSpeechText02} />
           </ReactBootstrap.Panel>
         </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Resolucion" eventKey="3">
+        <ReactBootstrap.Panel header="Resolución" eventKey="3">
           <ReactBootstrap.Panel header="Speech">
             <AgentSpeech text={agentSpeechText03} />
-          </ReactBootstrap.Panel>
-          <ReactBootstrap.Panel header="Asignacion de ticket">
-            <TicketNumber/>
           </ReactBootstrap.Panel>
         </ReactBootstrap.Panel>
         <ReactBootstrap.Panel header="Cierre" eventKey="4">
           <ReactBootstrap.Panel header="Speech">
             <AgentSpeech text={agentSpeechText04} />
+          </ReactBootstrap.Panel>
+        </ReactBootstrap.Panel>
+        <ReactBootstrap.Panel header="Asignar ticket y enviar a encuesta" eventKey="5">
+          <ReactBootstrap.Panel header="Speech">
+            <AgentSpeech text={agentSpeechText05} />
+          </ReactBootstrap.Panel>
+          <ReactBootstrap.Panel header="Asignacion de ticket">
+            <TicketNumber/>
           </ReactBootstrap.Panel>
           <ReactBootstrap.Panel header="Encuesta de evaluacion">
             <TransferCall/>

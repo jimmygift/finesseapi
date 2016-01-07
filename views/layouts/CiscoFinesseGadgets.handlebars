@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Module>
 
-<ModulePrefs title=" "
-    description="Call Logging WebService" testPref01="Test String 01" height="800">
+<ModulePrefs title="{{gadgetTitle}}"
+    description="{{gadgetDesc}}" height="{{gadgetHeight}}" scrolling="{{gadgetScroll}}">
     <Require feature="settitle" />
     <Require feature="dynamic-height" />
     <Require feature="minimessage"/>
@@ -11,54 +11,63 @@
     <Require feature="pubsub-2"/>
 
     <Optional feature="content-rewrite">
-	<Param name="expires">1</Param>
+	     <Param name="expires">1</Param>
     </Optional>
 </ModulePrefs>
 
 <!-- Parameters passed from the server via NodeJS template to the client side scripts -->
 <UserPref name="gadgetServerHost" displayName="gadgetServerHost" datatype="string" default_value="{{gadgetServerHost}}" />
 <UserPref name="gadgetServerPort" displayName="gadgetServerPort" datatype="string" default_value="{{gadgetServerPort}}" />
+<UserPref name="vxmlServerHost"   displayName="vxmlServerHost"   datatype="string" default_value="{{vxmlServerHost}}" />
+<UserPref name="vxmlServerPort"   displayName="vxmlServerPort"   datatype="string" default_value="{{vxmlServerPort}}" />
+<UserPref name="vxmlServerPath"   displayName="vxmlServerPath"   datatype="string" default_value="{{vxmlServerPath}}" />
+<UserPref name="transferDirn"     displayName="transferDirn"     datatype="string" default_value="{{transferDirn}}" />
+
 
 <Content type="html">
 <![CDATA[
     <!DOCTYPE html>
 
-    <!-- Bootstrap 3.3 CSS -->
-    <link rel="stylesheet" href="vendor/css/bootstrap.min.css" type="text/css"/>
-
-    <!-- Styling -->
-    <link rel="stylesheet" href="vendor/css/Gadget.css" type="text/css" />
- 
-    <!-- JQuery 1.10 -->
-    <script type="text/javascript" src="vendor/js/jquery.min.js"></script>
-
-    <!-- Bootstrap 3.3 JS  -->
-    <script type="text/javascript" src="vendor/js/bootstrap.min.js"></script>
+    <!-- Bootstrap  CSS -->
+    <link rel="stylesheet"  type="text/css" href="/vendor/css/bootstrap.min.css"/>
+    <link rel="stylesheet"  type="text/css" href="/vendor/css/bootstrap-theme.min.css"/>
 
     <!-- Cisco Finesse Library -->
-    <script type="text/javascript" src="vendor/js/finesse-10.5.1.js"></script>
+    <script type="text/javascript" src="/vendor/js/finesse-10.5.1.js"></script>
 
-    <script type="text/javascript" src="js/code_{{rndString}}.js"></script>
-    <script type="text/javascript" src="js/restRequests_{{rndString}}.js"></script>
-    <script type="text/javascript" src="js/ui_{{rndString}}.js"></script>
+    <!-- JQuery and Bootstrap JS -->
+    <script type="text/javascript" src="/vendor/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/vendor/js/bootstrap.min.js"></script>
 
-    <!-- Gadget Business Logic -->
-    <script type="text/javascript" src="js/CiscoFinesseGadgets_{{rndString}}.js"></script>
+    <!-- ReactJs base and ReactJs components-->
+    <script type="text/javascript" src="/vendor/js/react.js"></script>
+    <script type="text/javascript" src="/vendor/js/react-dom.js"></script>
+    <script type="text/javascript" src="/vendor/js/react-bootstrap.min.js"></script>
 
-    <body class="claro">
-    <!-- START Gadget UI -->
-    {{{body}}}
-    <!-- END Gadget UI -->  
+
+    <!-- HTTP REST Module -->
+    <script type="text/javascript" src="/js/restRequests_{{rndString}}.js"></script>
+
+     <!-- Gadget -->
+    <script type="text/javascript" src="/js/CiscoFinesseGadget_{{rndString}}.js"></script>
+
     <body>
+    <!-- START Gadget UI -->
+    <div id="content01"></div>
+    <div id="content02"></div>
+    <!-- END Gadget UI -->
 
+    <!-- ReactJs Code  -->
+    <script type="text/javascript" src="/js/ReactCode_{{rndString}}.js"></script>
+
+  </body>
+
+    <!-- Initialize the Finesse Gadget -->
     <script type="text/javascript">
-    gadgets.HubSettings.onConnect = function () {
-        finesse.modules.CallLoggingGadget.init();
-    };
+      gadgets.HubSettings.onConnect = function(){finesse.modules.CiscoFinesseGadget.init()};
     </script>
 
 ]]>
 
 </Content>
 </Module>
-
