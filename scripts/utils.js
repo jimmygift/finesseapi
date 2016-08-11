@@ -6,7 +6,7 @@ var format = require('date-format');
 */
 exports.status = function(code,err){
   var statusCodes = {
-  
+
     520: 'HTTP REQUEST ERROR',
     521: 'UPSTREAM HTTP AUTHENTICATION FAILED',
     522: 'UPSTREAM HTTP REQUEST ERROR',
@@ -15,7 +15,7 @@ exports.status = function(code,err){
     533: 'DATABASE EMPTY RESPONSE'
   };
   return {code:   code,
-          status: statusCodes[code], 
+          status: statusCodes[code],
           error:  err};
 };
 
@@ -42,7 +42,7 @@ exports.compare = function(a,b) {
       return 1;
     return 0;
 
-  // first last  
+  // first last
   } else {
     if (a[prop] < b[prop])
       return -1;
@@ -50,7 +50,7 @@ exports.compare = function(a,b) {
       return 1;
     return 0;
   }
-  
+
 };
 
 exports.dateTolocalTimezone = function (date) {
@@ -89,7 +89,7 @@ exports.showResult = function (err,res,body){
   }
 };
 
-// Generate a random string 
+// Generate a random string
 // numChars   Number of characters on random string
 exports.randomString = function(numChars) {
   var text = "";
@@ -97,7 +97,7 @@ exports.randomString = function(numChars) {
 
   for( var i=0; i < numChars; i++ )
     text += possible.charAt(Math.floor(Math.random() * possible.length));
-  
+
   return text;
 };
 
@@ -126,7 +126,7 @@ exports.filterObjects = function (objs,props){
 };
 
 exports.renameProperties_ = function (objs,oldProp,newProp){
-  
+
   var rename = function rename(obj, oldName, newName) {
     if(!obj.hasOwnProperty(oldName)) {
       return false;
@@ -150,7 +150,7 @@ exports.renameProperties_ = function (objs,oldProp,newProp){
 //    oldProp   Property to rename
 //    newProp   New name for property
 exports.renameProperties = function(objs,oldProp,newProp){
-  
+
   var newObjs = [];
   for(var i = 0; i < objs.length; i++){
     objs[i][newProp] = objs[i][oldProp];
@@ -185,4 +185,36 @@ exports.duplicateProperty = function(objs,prop,newProp){
     newObjs.push(objs[i]);
   }
   return newObjs;
+};
+
+
+// http://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js
+
+exports.getIpAddress = function(){
+  var os = require('os');
+  var ifaces = os.networkInterfaces();
+  var ipAddress = null;
+
+  Object.keys(ifaces).forEach(function (ifname) {
+    var alias = 0;
+
+    ifaces[ifname].forEach(function (iface) {
+      if ('IPv4' !== iface.family || iface.internal !== false) {
+        // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+        return;
+      }
+
+      if (alias >= 1) {
+        // this single interface has multiple ipv4 addresses
+        // console.log(ifname + ':' + alias, iface.address);
+      } else {
+        // this interface has only one ipv4 adress
+        ipAddress = iface.address;
+        //return(iface.address);
+      }
+      ++alias;
+    });
+  });
+
+  return ipAddress;
 };

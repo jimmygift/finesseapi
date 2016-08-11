@@ -13,7 +13,7 @@ exports.getLastContacts = function(req,res){
 
   // Get the last contacts (recorded calls) for specified extension
   restReq.getLastContacts(params, function(err,contacts){
-    if (err){ 
+    if (err){
       //res.send(500, err.error.message);
       res.status(500).jsonp(err);
     } else {
@@ -65,9 +65,9 @@ exports.add = function(req,res){
     // Wait some seconds in order to give AQM server time to process the recording
     // Get last contact (recorded call) from AQM for the extension
     // Get last ticket recorded on the database for the extension
-    // Update the ticket number metadata for the contact we found 
+    // Update the ticket number metadata for the contact we found
 
-    logger.info('GOT CLOSE EVENT..');
+    //logger.info('GOT CLOSE EVENT..');
 
     setTimeout(restReq.deferredCallTagging(params,function(err,result){
       if (err) {
@@ -76,10 +76,10 @@ exports.add = function(req,res){
         res.status(200).jsonp(result);
       }
     }),3000);
-    
+
   } else if (params.callState==='ANSWERED'){
-    
-    logger.info('GOT ANSWERED EVENT..');
+
+    //logger.info('GOT ANSWERED EVENT..');
 
   };
 
@@ -94,7 +94,7 @@ exports.add = function(req,res){
   });
 
   callData.save(function(err){
-    if (err) { 
+    if (err) {
       return res.send(500, err.message);
     } else {
 
@@ -102,14 +102,3 @@ exports.add = function(req,res){
     };
   });
 };
-
-
-
-
-
-
-
-
-
-
-

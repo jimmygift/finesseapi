@@ -1,4 +1,13 @@
 /*
+
+
+ReactJS Source Code
+/public/js/myreact.js
+
+ReactJS Dist Code
+ babel --presets es2015,react myreact.js > ReactCode.js
+
+
 _processCall(): Process the dialog with id: 18527012, to extension: 1371, from extension: 39387181470080, call state: ACTIVE,     callType: ACD_IN
 _processCall(): Process the dialog with id: 18527024, to extension: null, from extension: 16698,          call state: INITIATING, callType: CONSULT
 _processCall(): Process the dialog with id: 18527024, to extension: 7772, from extension: 16698,          call state: INITIATED,  callType: CONSULT
@@ -49,6 +58,10 @@ Incoming Call
 
 callVariable2
 
+Add logging to external server
+Add ping function
+Set reactjs state from external script
+
 */
 
 var finesse = finesse || {};
@@ -93,6 +106,9 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       dialogAcd, dialogConsult,                 // Gadget specific objects
       callid, contactid,
       sysInfo,
+      containerServices,
+      gadgetConfigJson,                         // ReactJS Components configuration
+
       // Get custom paramaters from the Prefs defined at the gadget XML definition file
       prefs         =  new gadgets.Prefs(),
       baseUrl       = 'http://' + prefs.getString('gadgetServerHost') + ':' + prefs.getString('gadgetServerPort'),
@@ -103,39 +119,61 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
       transferToExtension = transferDirn,
 
-      finesseEventsLogging = prefs.string("finesseEventsLogging"),
-      clientLogging = prefs.string("clientLogging"),
+      finesseEventsLogging = prefs.getString("finesseEventsLogging"),
+      clientLogging = prefs.getString("clientLogging"),
+
+      pingEnabled  = prefs.getString("pingEnabled"),
+      pingInterval = prefs.getString("pingInterval"),
 
       // Bridge to ReactJS state object
       callState = {acdIncomingCall: false,
                    acdCallUsername: '',
                    acdCallUserid:   ''},
 
-      // ReactJS application
-      _getReactApp = function(){
-         return React.createElement(TransferButton, {callState:callState,onClick: _reactCbk,baseUrl:baseUrl});
-      },
-
       NO_MSG_HEIGHT = 30,
+      VERSION='0.840.36',
 
+      _util=finesse.utilities.Utilities,
+
+      // Mount point id for ReactJS user interface
+      // mountPoint = document.getElementById('content02'),
+      reactjsMountPoint = 'content02',
+
+      _log_ = function(msg,user,dialog){},
 
       _log = function(msg){
         var handlers = { success: _finesseRemoteLoggingSuccess, error: _finesseRemoteLoggingError},
-            user = user.getExtension();
+            user = prefs.getString('extension'),
+            dateMs = _util.currentTimeMillis();
 
         // if enabled log locally with finesseLogging
-        if (clientLogging) { clientLogs(msg) };
+        if (finesseEventsLogging=='true') {
+            //clientLogs.log('FE:'+finesseEventsLogging);
+            clientLogs.log(msg);
+            msg = dateMs + ' ' + msg;
+            _REST.httpRequest('POST',baseUrl,'/finesseLogging',{user: user, msg: msg},handlers)};
 
         // if enabled log to remote server
-        if (finesseEventsLogging) { _REST.httpRequest('POST',baseUrl,'/finesseLogging',{user: user, msg: msg},handlers) }
+        // if (finesseEventsLogging=="true") { _REST.httpRequest('POST',baseUrl,'/finesseLogging',{msg: msg},handlers) }
       },
 
-      // Dialogs
-      // Dialog and user event handlers
-      // Finesse Call  Control
-      // Server Side Backend Interaction
-      // Call control success/error callbacks
-      // Server Side Backend success/error callbacks
+      _ping = function(msg) {
+        var getDelay = function(m){
+              return (((new Date()).getTime()) - JSON.parse(m.content).timestamp  );
+            },
+            handlers = { success: function(msg){ _log('_ping(). Delay ms:' + getDelay(msg)) },
+                         error:   function(msg){ clientLogs.log('_ping() Error. ' + JSON.stringify(msg))}},
+            user = prefs.getString('extension'),
+            timestamp = (new Date()).getTime();
+
+        _REST.httpRequest('POST',baseUrl,'/pong',{user: user, msg: msg, timestamp: timestamp},handlers) ;
+      },
+
+      // ReactJS Rendering
+      _reactRender = function(reactProps){
+         //_log('React.render Props: ' + JSON.stringify(reactProps));
+         ReactDOM.render(React.createElement(ReactCiscoFinesseGadget,reactProps),document.getElementById(reactjsMountPoint));
+      },
 
       // Dialogs -----------------------------------------------------------------------------------------
 
@@ -151,14 +189,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
                  callState   : dialog.getState(),
                  extension   : user.getExtension()
                };
-
-          _log("Call Variables: " + JSON.stringify(callVars));
-
-            //clientLogs.log('_getCallData(). callId: ' + callData.callId + ' Type: ' + callData.callType +
-            //               ' callState:' + callData.callState + ' ani: ' + callData.fromAddress);
           return callData;
-        } else {
-          clientLogs.log('Dialog is null/undefined.');
         }
       },
 
@@ -167,22 +198,26 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
       // This will occur when a new Dialog is added to the user's collection (new call)
       _handleNewDialog = function(dialog) {
-        clientLogs.log('In handleNewDialog.');
+        _log('handleNewDialog() dialog:' + JSON.stringify(_getCallData(dialog)));
       },
 
       // This will occur when a Dialog is removed from this user's collection (example, end call)
       _handleEndDialog = function(dialog) {
-        clientLogs.log('In handleEndDialog..');
+        _log('handleEndDialog()');
       },
 
       // Handler for additions to the Dialogs collection object.  This will occur when a new
       // Dialog is created on the Finesse server for this user.
       _handleDialogAdd = function(dialog) {
-        var callType = _getCallData(dialog).callType;
+        var callData = _getCallData(dialog),
+            callType = callData.callType,
+            fromAddress = callData.fromAddress;
 
-        if (dialog && callType==='ACD_IN' && dialogAcd==null){
+        _log('handleDialogAdd() dialog:' + JSON.stringify(_getCallData(dialog)));
+
+        if (dialog && callType==='ACD_IN' && dialogAcd==null) {
           dialogAcd = dialog;
-          _log('_handleDialogAdd(). Dialog add Ok: ' + dialog.getId()  + ' Type: ' + callType);
+          _log('_handleDialogAdd(). DialogId: ' + dialog.getId()  + ' Type:' + callType);
 
           // Notify ReactJS state
           var callVars = dialog.getMediaProperties();
@@ -190,18 +225,15 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
           callState['acdCallUsername'] = callVars.callVariable3;
           callState['acdCallUserid']   = callVars.callVariable4;
 
-          _log('The callState: ' + JSON.stringify(callState));
 
-          // Callback to ReactJs
-          globalVar.reactCallback(callState);
-
-        } else if (dialog && callType==="CONSULT" && dialogConsult==null){
+        // dialog.getToAddress()==transferToExtension is null!!
+        } else if (dialog && callType==='CONSULT' && dialogConsult==null){
           dialogConsult = dialog;
-          _log('_handleDialogAdd(). Dialog add Ok: ' + dialog.getId()  + ' Type: ' + callType);
+          _log('_handleDialogAdd(). DialogId:' + dialog.getId()  + ' DialogType:' + callType);
           dialogConsult.addHandler('change', _handleDialogsChanged);
 
         } else {
-          _log('_handleDialogAdd(). Invalid dialog: ' + dialog.getId() + ' Type: ' + callType);
+          _log('_handleDialogAdd(). Invalid dialog. DialogId:' + dialog.getId() + ' DialogType:' + callType + ' toAddress:' + callData.DNIS);
         }
       },
 
@@ -209,28 +241,41 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       _handleDialogDelete = function(dialog) {
         var callType = _getCallData(dialog).callType;
 
+        // This will happen if the incoming call is lost (ie user hangups) before any further
+        // action (ie. transfer) is taken by the agent.
         if (dialog!==null && callType==='ACD_IN' && dialogAcd!==null){
           dialogAcd = null;
-          clientLogs.log('_handleDialogDelete(). Dialog delete Ok: ' + dialog.getId()  + ' Type:'  + callType);
+          _log('_handleDialogDelete(). Id:' + dialog.getId()  + ' Type:'  + callType);
 
-          // Notify ReactJS state
-          callState['acdIncomingCall'] = false;
-          callState['acdCallUsername'] = '';
-          callState['acdCallUserid']   = '';
+          // Notify ReactJS
+          var reactProps = {acdIncomingCall: false,
+                            acdCallerId: '' ,
+                            acdCallerName: ''};
 
-          // Callback to ReactJs
-          globalVar.reactCallback(callState);
+          _reactRender(reactProps);
 
+        // This will only happen if the consult call is lost (ie call control failure)
         } else if (dialog!==null && callType==="CONSULT" && dialogConsult!==null){
           dialogConsult = null;
-          clientLogs.log('_handleDialogDelete. Dialog delete Ok: ' + dialog.getId()  + ' Type: ' + callType);
+          _log('_handleDialogDelete(). DialogId: ' + dialog.getId()  + ' DialogType:' + callType);
+
+        // Just before deleting the original ACD and CONSULT call from the dialogs collection both dialogs
+        // appear as type TRANSFER
+        } else if (dialog!==null && callType==="TRANSFER") {
+          _log('_handleDialogDelete(). DialogId:' + dialog.getId() + ' DialogType:' + callType);
+          var callId = callId.getId();
+          if (dialogConsult.getId()==dialog.getId()) {
+            dialogConsult=null;
+          } else if (dialogAcd.getId()==dialog.getId()) {
+            dialogAcd=null;
+          }
         } else {
-          clientLogs.log('_handleDialogDelete(). Invalid dialog delete: ' + dialog.getId() + ' Type: ' + callType);
+          _log('_handleDialogDelete(). Invalid dialog delete. DialogId:' + dialog.getId() + ' DialogType:' + callType);
         }
       },
 
       _handleDialogsLoaded = function() {
-  	     clientLogs.log ('_handleDialogsLoaded()');
+  	     _log ('_handleDialogsLoaded()');
          var dialogCollection, dialogId;
          //Render any existing dialogs
          dialogCollection = dialogs.getCollection();
@@ -242,16 +287,16 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       },
 
       _handleDialogsChanged = function() {
-        clientLogs.log('_handleDialogsChanged()');
         var dialogCollection = dialogs.getCollection();
 
         for (dialogId in dialogCollection) {
           if (dialogCollection.hasOwnProperty(dialogId)) {
              var dialog   = dialogCollection[dialogId],
                  callData = _getCallData(dialog);
-             if (callData.callType==="CONSULT" && callData.callState=="ACTIVE") {
-                 clientLogs.log('_handleDialogsChanged. CONSULT call is ACTIVE');
-                 _startConsultCallSuccess(null);
+             _log('_handleDialogsChanged(). callType:' + callData.callType + ' callState:' + callData.callState);
+             if (callData.callType=="CONSULT" && callData.callState=="ACTIVE") {
+                 //_log('_handleDialogsChanged. CONSULT call is ACTIVE');
+                 _startConsultCallSuccess();
              }
           }
         }
@@ -260,7 +305,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       // Handler for the onLoad of a User object.  This occurs when the User object is initially read
       // from the Finesse server.  Any once only initialization should be done within this function.
       _handleUserLoad = function(userevent) {
-	      clientLogs.log ('_handleUserLoad()');
+	      _log ('_handleUserLoad() State:' + user.getState());
 
         // Get an instance of the dialogs collection and register handlers for dialog additions and removals
         dialogs = user.getDialogs( {
@@ -269,10 +314,76 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 	           onLoad :  _handleDialogsLoaded,
              onChange: _handleDialogsChanged
         });
+
+        var _getReactConfigSuccess = function(res){
+                //_log('_getReactConfigSuccess() resp:' + JSON.stringify(res));
+
+                gadgetConfigJson = JSON.parse(res['content']);
+
+                // Initial rendering of ReactJS components
+                var reactProps = {
+                                  acdIncomingCall: false,
+                                  //acdCallerId: '' ,
+                                  //acdCallerName: '',
+                                  //agentTeamName: user.getTeamName(),
+                                  //agentTeamId:   user.getTeamId(),
+                                  gadgetConfig:  gadgetConfigJson['agentSpeech']},
+                    gadgetTitle = gadgetConfigJson.gadgetDesc;
+
+                //_log('Gadget: ' + JSON.stringify(gadgetConfigJson))
+                _log('Gadget Name: ' + gadgetTitle);
+                _log('Initial React props: ' + JSON.stringify(reactProps));
+
+                // Override the title set on the Gadget XML config
+                gadgets.window.setTitle(gadgetTitle);
+
+                // Initial ReactJS render
+                _reactRender(reactProps);
+
+                // Was the ReactJS render successfull ?
+                if(document.getElementById(reactjsMountPoint).innerHTML=="") {
+                    _log('init(). mountPoint:' + reactjsMountPoint + 'React component not loaded.' );}
+                else {
+                    _log('init(). mountPoint:' + reactjsMountPoint + 'React component loaded.');
+                }
+            },
+            _getReactConfigError   = function(res){
+              _log('_getReactConfigError()');
+            },
+            handlers = { success: _getReactConfigSuccess,
+                         error:   _getReactConfigError};
+
+        // Get Gadget ReactJS JSON Config
+        _REST.httpRequest('GET',baseUrl,'/getReactConfig',
+                              {team:      user.getTeamName(),
+                               teamId:    user.getTeamId(),
+                               extension: user.getExtension(),
+                               firstName: user.getFirstName(),
+                               lastName:  user.getLastName()},
+                           handlers) ;
+
       },
 
       _handleUserChange = function(userevent) {
-        clientLogs.log('_handleUserChange()');
+        if(user.getState()=='NOT_READY') {
+          _log('_handleUserChange() State:' + user.getState() + ' Date:' + user.getStateChangeTime() + ' Reason:' + user.getNotReadyReasonCodeId());
+        } else {
+          _log('_handleUserChange() State:' + user.getState() + ' Date:' + user.getStateChangeTime());
+        };
+        // JSON.stringify(userevent) );
+        //_log(JSON.stringify(userevent));
+        if (dialogAcd && user.getState()=='TALKING') {
+          //_log('ACD_IN TALKING');
+
+          // Notify ReactJS
+          var dialogAcdProperties = dialogAcd.getMediaProperties(),
+              reactProps = {acdIncomingCall: true,
+                            acdCallerId:   dialogAcdProperties.callVariable4 ,
+                            acdCallerName: dialogAcdProperties.callVariable3};
+
+          //_log('props:' + JSON.stringify(reactProps));
+          _reactRender(reactProps);
+        };
       },
 
       // Finesse Call Control ---------------------------------------------------------------------------------
@@ -281,55 +392,54 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       // dialog:  ACD In dialog
       // todo No dialog
       // _handleDialogAdd and _handleDialogsChanged handle the CONSULT Transfer success event
-      _startCallTransfer = function(dialog,user){
-        var handlers = {success: _dummy, error: _startConsultCallError},
-            callType = _getCallData(dialog).callType,
-            callData = _getCallData(dialog),
-            dirn     = user.getExtension();
+      _startCallTransfer = function(){
 
-        clientLogs.log('_startCallTransfer()');
+        //_log('startCallTransfer()');
 
         // Do we have an incoming valid ACD call, ie ignore silent monitor calls, consult calls, etc.
-        if (dialog!==null && callType==='ACD_IN') {
-            _log('_startCallTransfer(). Starting consult call. Dialog: ' + dialog.getId() +
-                            ' Ext num: ' + dirn + ' Xfer num: ' + transferDirn);
+        if (dialogAcd && (_getCallData(dialogAcd)).callType==='ACD_IN') {
+            var handlers = {success: _dummy, error: _startConsultCallError},
+                callType = _getCallData(dialogAcd).callType,
+                callData = _getCallData(dialogAcd),
+                dirn     = user.getExtension();
+
+            _log('_startCallTransfer(). DialogId:' + dialogAcd.getId() +
+                            ' ExtNum:' + dirn + ' XferNum:' + transferDirn);
 
             // Refer the call (post to database) before transferring to final destination
             // Make an "optimistic" call refer.
             _postReferral(callData);
 
             // Try the consult call
-            dialog.makeConsultCall(dirn,transferDirn,handlers);
+            dialogAcd.makeConsultCall(dirn,transferDirn,handlers);
         } else {
-            var msg = 'Invalid dialogs on _startCallTransfer().';
-            clientLogs.log(msg);
-            handlers.error({status: 500, content: msg});
-            return;
+            var msg = '_startCallTransfer(). Invalid dialogs.';
+            _log(msg);
         }
       },
 
       //  dialog:    Consult call dialog
-      _completeCallTransfer = function(dialog){
+      _completeCallTransfer = function(dialogAcd,dialogConsult){
+        _log('completeCallTransfer().')
+        _log('completeCallTransfer() dialogAcd:' + JSON.stringify(_getCallData(dialogAcd))
+          + ' dialogConsult:' + JSON.stringify(_getCallData(dialogConsult)));
         var handlers = {success: _completeTransferSuccess, error: _completeTransferError},
-            callData = _getCallData(dialog);
+            callData = _getCallData(dialogAcd),
             dirn     = user.getExtension(),
             excludeSilentMonitor = true,
             TRANSFER = finesse.restservices.Dialog.Actions.TRANSFER;
 
-
-        clientLogs.log('Dialog:' + dialog + ' Num dialogs:' + dialogs.getDialogCount(excludeSilentMonitor) +
-                        ' True? ' + (dialogs.getDialogCount(excludeSilentMonitor)==2) + ' State:' + callData.callState );
-
-        // We must have exactly 2 calls excluding silent monitor calls
-        if (dialog && (dialogs.getDialogCount(excludeSilentMonitor)==2) ) {
-           clientLogs.log('_completeCallTransfer(). Completing transfer call on Dialog: ' + dialog.getId() +
+        // We must have exactly 2 calls excluding silent monitor calls and the destination of the consult call
+        // must be the extension number defined for transfers
+        if (dialogAcd && (dialogs.getDialogCount(excludeSilentMonitor)==2) && dialogConsult.getToAddress()==transferToExtension) {
+           _log('_completeCallTransfer(). Completing transfer call on Dialog: ' + dialogAcd.getId() +
                           ' Extension: '   + dirn +
                           ' Destination: ' + transferDirn + " Action: " + TRANSFER +
-                          ' Dialogs: '     + dialogs.getDialogCount(excludeSilentMonitor));
-           dialog.requestAction(dirn,TRANSFER,handlers);
+                          ' Dialogs:'     + dialogs.getDialogCount(excludeSilentMonitor));
+           dialogAcd.requestAction(dirn,TRANSFER,handlers);
         } else {
            var msg = 'Invalid dialogs on _completeCallTransfer().';
-           clientLogs.log(msg);
+           _log(msg);
            handlers.error({status: 500, content: msg});
            return;
         }
@@ -339,7 +449,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
       _postReferral = function(callData){
         // This should complete before the transferred call is answered on the IVR
-        clientLogs.log('postReferral()');
+        _log('_postReferral()');
         var jsonData = { originalAni: callData.fromAddress,   // orginalAni=ani (randomId)
                          ani:         callData.extension},
             handlers = { success: _postReferralSuccess, error: _postReferralError};
@@ -349,19 +459,25 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
       // Tag call with ticket number. Include contactid for previously recorded calls
       // or leave it alone to refer to the current call.
-      _setTicketNumber = function(ticketnumber,dialogAcd,contactid,callid){
-        var callData = _getCallData(dialogAcd);
+      // handlers = { success: _setTicketNumberSuccess, error: _setTicketNumberError};
+      _setTicketNumber = function(ticketnumber,handlers){
 
-        var jsonData = { ticketNum : ticketnumber.trim(),
-                         extension : user.getExtension(),
-                         state     : user.getState(),
-                         callId    : callData.callId
-                       },
-            handlers = { success: _setTicketNumberSuccess, error: _setTicketNumberError};
+        if ( dialogAcd && ticketnumber.length !== 0 ) {
+          var callData = _getCallData(dialogAcd);
+          var jsonData = { ticketNum:   ticketnumber.trim(),
+                           extension:   user.getExtension(),
+                           state:       user.getState(),
+                           callId:      callData.callId,
+                           contactid:   contactid,
+                           originalAni: callData.fromAddress,   // orginalAni=ani (randomId)
+                           ani:         callData.extension
+                         };
 
-        if (jsonData.ticketNum.length !== 0) {
-          clientLogs.log('_setTicketNumber(). ticketNum:' + jsonData.ticketNum + ' callId:' + jsonData.callId);
+          //_log('_setTicketNumber(). ticketNum:' + jsonData.ticketNum + ' callId:' + jsonData.callId);
+          _log('_setTicketNumber(). ' + JSON.stringify(jsonData))
           _REST.httpRequest('POST',baseUrl,'/tickets',jsonData,handlers);
+        } else {
+          _log('_setTicketNumber(). Invalid Data. TicketNum:' + ticketnumber + ' callId:' + callid + ' dialogAcd:' + dialogAcd);
         }
       },
 
@@ -372,7 +488,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
             handlers = { success: _getLastContactsSuccess,
                          error:   _getLastContactsError};
 
-        clientLogs.log('_getLastContacts().  Extension:' + jsonData.extension);
+        _log('_getLastContacts().  Extension:' + jsonData.extension);
 
         _REST.httpRequest('GET',baseUrl,'/getLastContacts',jsonData,handlers);
       },
@@ -380,49 +496,66 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       // Call Control Success / Error Callbacks --------------------------------------------------------------
 
       _startConsultCallSuccess = function(rsp) {
-	       clientLogs.log ('_startConsultCallSuccess() ' + dialogConsult);
+        _log('startConsultCallSuccess..');
+
+        //var callData = _getCallData(dialogConsult);
+	       _log('_startConsultCallSuccess(). \n DialogConsult: ' +
+            JSON.stringify(_getCallData(dialogConsult)) + '\n DialogAcd:' + JSON.stringify(_getCallData(dialogAcd)));
+
+         /*
          var delay    = 5000,
              dialog   = dialogAcd,
              callData = _getCallData(dialogAcd);
-
+         */
          // Refer the call (post to database) before transferring to final destination
+         // postReferral() must complete before this !!
          //_postReferral(callData);
-         setTimeout(_completeCallTransfer(dialog),delay);
+
+         //_completeCallTransfer(dialogAcd,dialogConsult);
+
+         setTimeout(_completeCallTransfer(dialogAcd,dialogConsult),3000);
       },
 
       // dialog: originalCallDialog
       _startConsultCallError = function(rsp) {
-	       clientLogs.log ('_startConsultCallError() ' + rsp);
+	       _log('_startConsultCallError() ' + rsp);
       },
 
       _completeTransferSuccess = function(rsp){
-        clientLogs.log('_completeTransferSuccess()');
+        _log('_completeTransferSuccess()');
         dialogAcd=null;
         dialogConsult=null;
+
+        // Notify ReactJS
+        var reactProps = {acdIncomingCall: false,
+                          acdCallerId: '' ,
+                          acdCallerName: ''};
+
+        _log('reactProps: ' + JSON.stringify(reactProps));
+        _reactRender(reactProps);
       },
 
       _completeTransferError = function(rsp){
-        clientLogs.log('_completeTransferError() ' + JSON.stringify(rsp) );
+        _log('_completeTransferError() ' + JSON.stringify(rsp) );
       },
 
       // Server side success/error callbacks ------------------------------------------------------------------
 
       _setTicketNumberSuccess = function(rsp) {
-        clientLogs.log('_setTicketNumberSuccess()');
+        _log('_setTicketNumberSuccess()');
       },
 
       _setTicketNumberError = function(rsp) {
-        clientLogs.log('_setTicketNumberError()');
+        _log('_setTicketNumberError()');
       },
 
       _postReferralSuccess = function(rsp) {
-        clientLogs.log('_postReferralSuccess()');
+        _log('_postReferralSuccess()');
       },
 
       _postReferralError = function(rsp) {
-        clientLogs.log('_postReferralError');
+        _log('_postReferralError()');
       },
-
 
       _finesseRemoteLoggingSuccess = function(rsp) {
 
@@ -432,43 +565,41 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
       },
 
+      _dummy = function(e) {
+        _log('_dummy(). \n DialogConsult: ' +
+           JSON.stringify(_getCallData(dialogConsult)) + '\n DialogAcd:' + JSON.stringify(_getCallData(dialogAcd)));
+      };
 
-      // ReactJs callback TEMP !!!!
-      _reactCbk  = function(e){
-        //clientLogs.log('React callback...');
-        _log("Transfer button event from ReactJs");
-        _startCallTransfer(dialogAcd,user);
-      },
-
-      _dummy = function(e) {};
-
-  // _REST._httpRequest('GET',vxmlBaseUrl,vxmlAppPath,jsonData,handlers);
-  // _dialog.makeConsultCall(user.getExtension(),transferToExtension,handlers)
-  // var errorType    = rsp.object.ApiErrors.ApiError.ErrorType;
-  // var errorMessage = rsp.object.ApiErrors.ApiError.ErrorMessage;
   return {
-
     // Performs all initialization for this gadget. Gets prefs from the gadget xml file
     init: function() {
       var prefs       = new gadgets.Prefs(),
 	        id          = prefs.getString("id"),
           baseUrl     = 'http://' + prefs.getString("gadgetServerHost") +
                          ':' + prefs.getString("gadgetServerPort"),
-          clientLogs  = finesse.cslogger.ClientLogger,
-          finesseUtil = finesse.utilities.Utilities;
+          TOPICS      = finesse.containerservices.ContainerServices.Topics;
+          //clientLogs  = finesse.cslogger.ClientLogger,
+          //finesseUtil = finesse.utilities.Utilities;
 
-      //gadgets.window.adjustHeight();
       // ClientServices are initialized with a reference to the current configuration.
       finesse.clientservices.ClientServices.init(finesse.gadget.Config);
+
+      finesse.clientservices.ClientServices.registerOnConnectHandler(function(){
+        _log('BOSH connection established');
+        _log('ReactCiscoFinesseGadget version: ' + REACT_GADGET_VERSION);
+        _log('Finesse Gadget version: ' + VERSION );
+        _log('restRequest version: '    + _REST.getVersion());
+      });
+
+      finesse.clientservices.ClientServices.registerOnDisconnectHandler(function(){
+        _log('BOSH connection lost');
+      });
+
+      _log('init(). Initializing ClientServices.');
+
       clientLogs.init(gadgets.Hub, 'CiscoFinesseGadget');
-      //clientLogs.log('Test: ' + _REST.isAlive());
 
-      //ReactDOM.render(React.createElement(MyComponent21,null),document.getElementById('content01'));
-
-      // Render the UI with ReactJS. Send initial parameters and callbacks here.
-      var mountPoint = document.getElementById('content02')
-      ReactDOM.render(React.createElement(TransferButton, {callState:callState,onClick: _reactCbk,baseUrl:baseUrl}), mountPoint);
-      //ReactDOM.render(_getReactApp(),mountPoint);
+      //gadgets.window.setTitle('This is my name');
 
       // Init the finesse user object
       user = new finesse.restservices.User({
@@ -479,31 +610,71 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
         onChange : _handleUserChange
       });
 
-      states = finesse.restservices.User.States();
-      dialogActions = finesse.restservices.Dialog.Actions();
+      // Init the ContainerServices
+      containerServices = finesse.containerservices.ContainerServices.init();
 
-      // Initiate the ContainerServices and add a handler for when the tab is visible
+      // Add a handler for when the tab is visible
       // to adjust the height of this gadget in case the tab was not visible
       // when the html was rendered (adjustHeight only works when tab is visible)
-      containerServices = finesse.containerservices.ContainerServices.init();
-      containerServices.addHandler(finesse.containerservices.ContainerServices.Topics.ACTIVE_TAB, function() {
-	        // clientLogs.log('Gadget is now visible');
+      containerServices.addHandler(TOPICS.ACTIVE_TAB, function(e) {
+	        _log('containerServices. Gadget is now visible. GadgetId:' +
+                  containerServices.getMyGadgetId() + ' TabId:' + containerServices.getMyTabId());
 	        // automatically adjust the height of the gadget to show the html
 	        gadgets.window.adjustHeight();
       });
+
+      containerServices.addHandler(TOPICS.TIMER_TICK_EVENT, function(e) {
+          //_log('Timer Tick Event. ' + e.getDateQueued());
+      });
+
+      containerServices.addHandler(TOPICS.RELOAD_GADGET_EVENT, function(e) {
+          _log('Gadget Reload Event');
+      });
+
+      containerServices.addHandler(TOPICS.WORKFLOW_ACTION_EVENT, function(e) {
+          //_log('Workflow Action Event Name:' + e.getName() + ' Type:' + e.getType());
+      });
+
+      containerServices.addHandler(TOPICS.GADGET_VIEW_CHANGED_EVENT, function(e) {
+          //_log('GadgetViewChanged Action Event');
+      });
+
+      //containerServices.activateMyTab();
       containerServices.makeActiveTabReq();
+
     },
 
     // Initiate call transfer for current Incoming ACD call
-    startCallTransfer : function(){
-      _startCallTransfer(dialogAcd,user);
+    startCallTransfer: function(){
+      _startCallTransfer();
     },
 
     // Tag call with ticket number. Include contactid for previously recorded calls
     // or leave it alone to refer to the current call.
-    setTicketNumber: function(ticketnumber){
-      _setTicketNumber(ticketnumber,dialogAcd,contactid,callid);
-    }
+    setTicketNumber: function(ticketnumber,handelers){
+      _setTicketNumber(ticketnumber,handlers);
+    },
 
+    // Reloads the gadget code. Useful for testing.
+    reloadGadget: function(){
+      containerServices.reloadMyGadget();
+    },
+
+    ping: function(msg){
+      _ping(msg);
+    },
+
+    // Call the log function outside the CiscoFinesseGadget, ie. ReactJs
+    log: function(msg){
+      _log(msg);
+    }
   };
 }(jQuery,_REST));
+
+
+//setInterval(function(){ alert("Hello"); }, 15000);
+if(true) {
+  //var pingInterval = finesse.modules.CiscoFinesseGadget.pingInterval;
+  var pingInterval = 30;
+  setInterval(function(){ finesse.modules.CiscoFinesseGadget.ping("Ping Pong"); }, (pingInterval * 1000));
+}

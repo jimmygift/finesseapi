@@ -1,0 +1,119 @@
+
+ReactJS Dist Code
+ babel --presets es2015,react myreact.js > ReactCode.js
+
+
+
+Finesse notifications
+Timed events
+Gadget Reload                                    OK
+Consult call and transfer
+Gadget intercommunication
+Finesse error messages
+Notifiy Outbound/Inbound non ACD Calls
+Distributed Logging
+Publish events to kafka
+Configuration database
+Editor UI
+Config UI
+
+Add basic exception reporting and handling        OK
+ReactJs errors on key                             OK
+Define multiple gadgets
+Define custom call vars
+Log http static requests on nodejs                OK
+Webpack finesse gadget and reactJs components
+Fix React.TransferCall.render() rerendering       OK
+Transfer number must be the Route Pattern DN
+Override gadget title defined in xml              OK
+
+Get ip address of remote user                     OK
+NodeJs get server ip address and port             OK
+Disable/enable gadget caching
+Remove jQuery dependency
+Pass ref to gadget to react component
+
+
+
+Future Gadgets
+--------------
+
+Agent Gadgets
+- Call Workflow
+- Agent Stats 
+- Previous Calls 
+
+Supervisor Gadgets
+- Agent Reskilling
+- IVR Contingencia
+- IVR Preview
+- Call Recording Player
+
+
+
+______________
+CentOS Dist
+
+
+# NodeJS
+
+
+curl --silent --location https://nodejs.org/dist/v6.3.1/node-v6.3.1-linux-x64.tar.xz  --proxy http://09093221:Cisco428@157.146.254.253:8080 >  node-v6.3.1-linux-x64.tar.xz
+
+# Kafka
+
+
+
+# Cassandra
+
+
+
+
+
+
+ToDo
+
+
+FinesseGadgets
+--------------
+
+info:  2833 : _handleUserChange() State:RESERVED
+info:  2833 : _handleDialogAdd(). Invalid dialog. DialogId:19572383 DialogType: ACD_IN
+info:  2833 : _handleUserChange() State:TALKING
+
+
+info:  2819 : _completeTransferSuccess()
+info:  2819 : reactProps: {"acdIncomigCall":"false","acdCallerId":"","acdCallerName":""}
+info:  2819 : _handleDialogDelete(). Invalid dialog delete. DialogId:19572464 DialogType: TRANSFER
+info:  2819 : _handleDialogDelete(). Invalid dialog delete. DialogId:19572503 DialogType: TRANSFER
+info:  2819 : _handleUserChange() State:READY
+info: POST callId:19572464 from:70435291838842 to:2819 DNIS:2819 callState:CLOSE callType:undefined
+info: GOT CLOSE EVENT..
+
+
+Css files
+
+Node server
+
+Ticket assign alert
+
+
+
+VxmlServer
+----------
+
+
+- Audio files
+- External config file
+
+
+
+Reportes
+--------
+
+Nombres de agente
+Pregunta 3
+
+
+
+

@@ -22,6 +22,9 @@
 <UserPref name="vxmlServerPort"   displayName="vxmlServerPort"   datatype="string" default_value="{{vxmlServerPort}}" />
 <UserPref name="vxmlServerPath"   displayName="vxmlServerPath"   datatype="string" default_value="{{vxmlServerPath}}" />
 <UserPref name="transferDirn"     displayName="transferDirn"     datatype="string" default_value="{{transferDirn}}" />
+<UserPref name="pingEnabled"      displayName="pingEnabled"      datatype="string" default_value="{{pingEnabled}}" />
+<UserPref name="pingInterval"     displayName="pingInterval"     datatype="string" default_value="{{pingInterval}}" />
+<UserPref name="finesseEventsLogging"      displayName="finesseEventsLogging"      datatype="string" default_value="{{finesseEventsLogging}}" />
 
 
 <Content type="html">
@@ -62,10 +65,23 @@
 
   </body>
 
-    <!-- Initialize the Finesse Gadget -->
-    <script type="text/javascript">
+  <!-- Initialize the Finesse Gadget -->
+  <script type="text/javascript">
       gadgets.HubSettings.onConnect = function(){finesse.modules.CiscoFinesseGadget.init()};
-    </script>
+  </script>
+
+  <!--
+  <script type="text/javascript">
+    $( "#content02" ).keypress(function(event){
+      alert( "Handler for .keypress() called. " + event.which );
+      /*
+      if ( event.which == 114 ) {
+        finesse.modules.CiscoFinesseGadget.reloadGadget();
+      }
+      */
+    });
+  </script>
+  -->
 
 ]]>
 

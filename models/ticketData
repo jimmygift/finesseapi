@@ -12,9 +12,10 @@ var dataSchema  = new Schema({
   agentState:  { type: String },
   extension:   { type: String },
   callId:      { type: String },
+  ani:         { type: String },
+  originalAni: { type: String },
   date:        { type: Date   }
 
 });
 
 module.exports = mongoose.model('ticketData', dataSchema);
-

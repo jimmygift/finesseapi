@@ -8,15 +8,15 @@ var LogDataModel  = require('../models/logData').model('logData'),
 exports.add = function(req,res){
 
   var logData  = new LogDataModel({
-    user:      params.user,
-    msg:       params.msg
+    user:      req.body.user,
+    msg:       req.body.msg
   });
 
   logData.save(function(err){
     if (err) {
       return res.send(500, err.message);
     } else {
-      // Just save the call data
+      res.send(200);
     };
   });
 

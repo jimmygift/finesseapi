@@ -3,7 +3,9 @@ var express = require('express'),
     fs      = require('fs'),
     nconf   = require('nconf'),
     restReq = require('../scripts/restReq'),
-    utils   = require('../scripts/utils');
+    utils   = require('../scripts/utils'),
+    logger  = require('../scripts/logger.js'),
+    gconfig = require('../scripts/gadgetConfig');
 
 
 var router  = express.Router(),
@@ -23,14 +25,31 @@ nconf.argv()
 var clientConfig = { gadgetServerHost: nconf.get('gadgetHost'),
                      gadgetServerPort: nconf.get('gadgetPort') },
     rndString    =   utils.randomString(5),
-    serverConfig = { rndString: rndString };
+    serverConfig = { rndString: rndString },
+    serverIpAddr = utils.getIpAddress() || gadgetServerHost,
+    gadgetConfig = null;
+
+console.log('IP: ' + serverIpAddr);
+
+require('fs').readFile('./config/' + nconf.get('gadgetConfig'), 'utf8', function (err,data) {
+  if (err) throw err; // we'll not consider error handling for now
+  gadgetConfig = JSON.parse(data)
+});
 
 // Remote logging for Finesse Gadgets ------------------------------------------
 
 router.post('/finesseLogging', function(req,res){
 
+  logger.info(' ' + req.body.user + ' : ' + req.body.msg);
+
   req.date = new Date();
   RemoteLoggingModel.add(req, res);
+});
+
+router.post('/pong', function(req,res){
+  var resp = JSON.stringify({timestamp: req.body.timestamp});
+  //res.setHeader('Content-Type', 'application/json');
+  res.status(200).json({timestamp: req.body.timestamp});
 });
 
 // Call Processing -------------------------------------------------------------
@@ -91,18 +110,42 @@ router.get('/gadget',function(req, res){
                                     gadgetDesc:       nconf.get('gadgetDesc'),
                                     gadgetHeight:     nconf.get('gadgetHeight'),
                                     gadgetScroll:     nconf.get('gadgetScroll'),
-			     	                        gadgetServerHost: nconf.get('gadgetHost'),
+			     	                        //gadgetServerHost: nconf.get('gadgetHost'),
+                                    gadgetServerHost: serverIpAddr,
                      	     	        gadgetServerPort: nconf.get('gadgetPort'),
                                     vxmlServerHost:   nconf.get('vxmlServerHost'),
                                     vxmlServerPort:   nconf.get('vxmlServerPort'),
                                     vxmlServerPath:   nconf.get('vxmlServerPath'),
                                     transferDirn:     nconf.get('vxmlTransferDirn'),
+                                    pingEnabled:      nconf.get('pingEnabled'),
+                                    pingInterval:     nconf.get('pingInterval'),
+                                    finesseEventsLogging: nconf.get('finesseEventsLogging'),
 			     	                        layout: 'CiscoFinesseGadgets'});
 });
 
 router.get('/home', function (req, res){
   res.render('home',
              {layout: false });
+});
+
+// Get ReactJS config for the rendering of UI components on the Finesse Gadget
+router.get('/getReactConfig', function(req,res){
+  var extension  = req.query.extension,
+      team       = req.query.team;
+
+  var result = gconfig.getGadgetConfig(extension,team,gadgetConfig);
+
+  if (result) {
+    res.status(200).json(result);
+  } else {
+    res.status(500).json({error: "no result"});
+  }
+  //res.status(200).json({gadgetConfig: req.query.extension});
+  //res.status(200).json({config: 'hello', extension: req.query.extension, teamName: req.query.teamName});
+});
+
+router.get('/gadgetConfig', function (req,res){
+  res.status(200).json(gadgetConfig);
 });
 
 // Non Open Social (just HTML) client config
@@ -117,9 +160,7 @@ router.get('/client',function(req, res){
 // Get Server Config -------------------------------
 
 router.get('/serverConfig',function(req, res){
-
   res.status(200).jsonp(serverConfig);
-
 });
 
 // Client Config -------------------------------

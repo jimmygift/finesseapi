@@ -16,6 +16,8 @@
     <script type="text/javascript" src="vendor/js/react-dom.js"></script>
     <script type="text/javascript" src="vendor/js/react-bootstrap.min.js"></script>
 
+    <script type="text/javascript" src="/js/restRequests.js"></script>
+
 </head>
 <body>
     <!-- START Gadget UI -->
@@ -27,7 +29,17 @@
     <script type="text/javascript" src="js/ReactCode.js"></script>
 
     <script type="text/javascript">
-    ReactDOM.render(React.createElement(TransferButton, {name:" Jim"}), document.getElementById('content02'));
+    // Initial rendering of ReactJS components
+    var reactProps = {acdIncomigCall: 'false',
+                      acdCallerId: '' ,
+                      acdCallerName: '',
+                      baseUrl:''};
+    ReactDOM.render(React.createElement(ReactCiscoFinesseGadget,reactProps),document.getElementById('content02'));
+
+    $( "#content02" ).keypress(function(){
+      console.log( "Handler for .keypress() called." );
+    });
+
     </script>
 
 </body>

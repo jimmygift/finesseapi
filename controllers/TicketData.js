@@ -73,6 +73,8 @@ exports.add = function(req, res){
     ticketNum:   params.ticketNum,
     contactId:   params.contactId,
     callId:      params.callId,
+    ani:         params.ani,
+    originalAni:  params.originalAni,
     date:        req.date
   });
 
@@ -81,7 +83,7 @@ exports.add = function(req, res){
     if (err) {
       //return res.send(500, err.message);
     } else {
-      //res.status(200).jsonp(ticketData);
+      res.status(200).jsonp(ticketData);
     }
 
   });

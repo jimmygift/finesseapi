@@ -7,7 +7,9 @@ var express = require('express'),
     exphbs  = require('express3-handlebars'),
     mongoose     = require('mongoose'),
     bodyParser   = require('body-parser'),
-    cookieParser = require('cookie-parser');
+    cookieParser = require('cookie-parser'),
+    getIP = require('ipware')().get_ip,
+    ON_DEATH = require('death')({uncaughtException: true, SIGHUP: true});
 
 var routes = require('./routes/routes'),
     utils  = require('./scripts/utils'),
@@ -20,6 +22,7 @@ var routes = require('./routes/routes'),
 nconf.argv()
   .env()
   .file({ file: './config/config.json' });
+
 
 var mongoUrl = nconf.get('mongoUrl'),
     app = express();
@@ -66,10 +69,22 @@ app.use(cookieParser());
 // getting on the way. This avoids caching.
 // Also logs every request
 app.use(function (req, res, next) {
-  console.log( 'Src: ' + req.connection.remoteAddress + ' Req URL: ' + req.url );
+  //console.log( 'Src: ' + req.connection.remoteAddress + ' Req URL: ' + req.url );
   req.url = req.url.replace(/_\w{5}/, '');
   //console.log('New Request URL:' + req.url);
   next();
+});
+
+
+// Log use of static resources
+app.use(function (req, res, next) {
+    var filename  = path.basename(req.url),
+        extension = path.extname(filename),
+        ipInfo = getIP(req);
+
+    if (extension === '.css' || extension === '.js')
+        logger.info("The file " + filename + " was requested by " + ipInfo.clientIp);
+    next();
 });
 
 // access to static resources
@@ -110,5 +125,19 @@ app.use(function(err, req, res, next) {
   });
 });
 
+
+ON_DEATH(function(signal, err) {
+  //By default, it sets the callback on SIGINT, SIGQUIT, and SIGTERM.
+  //SIGINT: Sent from CTRL-C
+  //SIGQUIT: Sent from keyboard quit action.
+  //SIGTERM: Sent from operating system kill.
+  //clean up code here
+  if (signal=='SIGINT' || signal=='SIGQUIT' || signal=='SIGTERM') {
+    logger.info('Received Signal: ' + signal + ' and Error: ' + err + ' System Exit.');
+    process.exit();
+  } else {
+    logger.info('Received Signal: ' + signal + ' and Error: ' + err);
+  }
+});
 
 module.exports = app;

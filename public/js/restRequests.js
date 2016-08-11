@@ -14,6 +14,7 @@
 */
 
 var _REST = (function($,_gadgets,_util){
+   var version = 0.23;
     /**
      * _mycreateAjaxHandler is a Utility method to create ajax response handler closures around the
      * provided callbacks. Callbacks should be passed through from .ajax().
@@ -129,7 +130,7 @@ var _REST = (function($,_gadgets,_util){
       // Assume string is a www form encoded data string
       params[_gadgets.io.RequestParameters.HEADERS]["Content-Type"] = "application/x-www-form-urlencoded";
       params[_gadgets.io.RequestParameters.POST_DATA] = options.content;
-      clientLogs.log("Content typeOf: " + typeof(options.content));
+      //clientLogs.log("Content typeOf: " + typeof(options.content));
     };
 
     _mymakeRequest(baseUrl,encodeURI(url),_mycreateAjaxHandler(options),params);
@@ -156,13 +157,15 @@ var _REST = (function($,_gadgets,_util){
     params[_gadgets.io.RequestParameters.HEADERS] = params[_gadgets.io.RequestParameters.HEADERS] || {};
 
     _gadgets.io.makeRequest(encodeURI(baseUrl)+url,handler,params);
-    clientLogs.log("io.makeRequest to " +baseUrl+url);
+    //clientLogs.log("io.makeRequest to " +baseUrl+url);
   };
+
+  function _getVersion(){return version};
 
    // Pass handlers as {success: successHandler, error: errorHandler}
   return {
     httpRequest: function(method,baseUrl,reqUrl,jsonData,handlers){
-      clientLogs.log("IN httpRequest() "+method+" "+baseUrl+reqUrl);
+      //clientLogs.log("IN httpRequest() "+method+" "+baseUrl+reqUrl);
       _myrestRequest(baseUrl,reqUrl, {
            method:  method,
            success: handlers.success,
@@ -170,7 +173,8 @@ var _REST = (function($,_gadgets,_util){
            content: jsonData
       });
     },
-    isAlive: function() {
+    getVersion: function(){return _getVersion()},
+    isAlive: function(){
        return "REST object is alive !!";
     }
   };

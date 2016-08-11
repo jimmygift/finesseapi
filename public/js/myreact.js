@@ -1,36 +1,26 @@
-
 /*
-acentos
-
-{
-"callVariable1":null,
-"callVariable2":null,
-"callVariable3":"GONZALEZ ROARO CARLOS ALBERTO          ",
-"callVariable4":"20221582",
-"callVariable5":"Activo    ",
-"callVariable6":"PI Mexico                ",
-"callVariable7":"PIM Oficinas           /AD HABITAT     ",
-"callVariable8":"Regular          ",
-"callVariable9":"MC    ",
-"callVariable10":"Vicepresidente de Ventas Canal DTS     ",
-"user.layout":"ENLACE_LATAM",
-"DNIS":"16698",
-"callType":"ACD_IN",
-"dialedNumber":"1354",
-"outboundClassification":null
-
-
-.split("\n").map(function(i){return (<span>{i}<br/></span>) }
-
+babel --presets es2015,react myreact.js > ReactCode.js
 */
+
+var REACT_GADGET_VERSION='0.840.26';
+var reValidation = "\\w{2}\\d{6}";
 
 function userIdIsValid(id){
   if (id && id !=='000000'){
+    //alert('valid user id: ' + id);
     return true;
   } else {
+    //alert('invalid user id:' + id)
     return false;
   }
 };
+
+function _log(msg){
+  finesse.modules.CiscoFinesseGadget.log(msg);
+  return;
+};
+
+var tooltip = React.createElement(ReactBootstrap.Tooltip, { id: 'tooltip' }, 'Asignar ticket.');
 
 var BadgeInstance = React.createClass({
   render: function() {
@@ -41,63 +31,15 @@ var BadgeInstance = React.createClass({
   }
 });
 
-var BadgeInstance01 =  React.createElement(BadgeInstance, {key:1, label:"1", text:"Atencion inicial"});
-var BadgeInstance02 =  React.createElement(BadgeInstance, {key:2, label:"2", text:"Atencion"});
-var BadgeInstance03 =  React.createElement(BadgeInstance, {key:3, label:"3", text:"Asignar ticket"});
-var BadgeInstance04 =  React.createElement(BadgeInstance, {key:4, label:"4", text:"Transferir a encuesta"});
-
-var agentSpeechText01 =  `Gracias por llamar a Enlace
-Mi nombre es ___
-Tengo el gusto con ___ ?
-Su numero de nomina es ___ ?
-Por motivos de seguridad, me puede proporcionar su fecha de nacimiento ?
-Gracias por la informacion. Como te puedo ayudar el dia de hoy ?
-`;
-
-var agentSpeechText0102 =  `Gracias por llamar a Enlace.
-Mi nombre es ___.
-Con quien tengo el gusto ?
-Para ayudarlo mejor me proporciona su numero de nomina o GPID por favor ?
-Por motivos de seguridad, me puede proporcionar su fecha de nacimiento ?
-Gracias por la informacion. Como te puedo ayudar el dia de hoy ?
-`;
-
-var agentSpeechText02 = `Cuando se presento ese problema
-A que hora marcaste ?
-Enviaste correo a Pepsico Enlace ?
-Haz llamado a enlace sobre este tema anteriormente ?
-Que error te aparece ?
-Lo haz consultado con tu generalista o jefe directo ?
-Cuando entregaste tu Carta de Retencion ?
-A que herramienta estas intentando entrar ?
-Haz tenido faltas o incapacidades recientemente ?
-Te ayudaron a hacer el tramite en tu portal o lo hiciste solo ?
-Ya habias mandado papeleria ? cuando? a donde ?
-Esta llamada se registrara con un ticket numero ___, este no es un ticket adicional, solamente es un registro de su llamada
-`;
-
-var agentSpeechText03 =  `La solucion que nos brinda el area de ___ es ___
-Todavia no tenemos una respuesta dado que el area sigue trabajando en tu tema, estos procesos normalmente ...
-Si revisamos tu solicitud, para poder solucionarlo por completo requerimos tu apoyo en enviarnos ___
-Por el momento no sera posible ___ dado que por politica el area de ___ establece que ___
-`;
-
-var agentSpeechText04 = `Por lo tanto, requeriremos se comunique ___ y entonces ya recibiremos el dato solicitado, le parece ?
-Entonces en cuanto nos envie el dato, se procesara la solicitud y podremos finalizar su requerimento, ok ?
-Daremos seguimiento al ticket y en cuanto tengamos una respuesta le llegará un correo de notificacion de que se cerro el ticket. Si gusta se puede comunicar con nosotros para revisarlo a detalle, esta bien ?
-Algo mas en lo que le pueda ayudar ?
-Esta llamada se registrara con un ticket #___ este no es un ticket adicional, solamente es un registro de su llamada
-`;
-
-var agentSpeechText05 = `
-Le pido 30 segundos mas de su tiempo para una encuesta muy breve de dos preguntitas para evaluar mi servicio y la resolucion por parte de Servicios al Personal ok ?
-Muchas gracias por llamar a Enlace, estamos a sus ordenes`
-
 // <span className="glyphicon glyphicon-user"></span>
 // {agentSpeechText03.split("\n").map(function(i){return (<span>{i}<br/></span>) } ) }
 var AgentSpeech = React.createClass({
   render: function() {
-    var textNodes = this.props.text.split("\n").map(function(i){ return (<span>{i}<br/></span>)});
+    var text       = this.props.text.replace('%callername%',this.props.callerName),
+        text       = text.replace('%callerid%',this.props.callerId),
+        textNodes  = text.split("\n").map(function(val,idx){ return (<span key={idx}>{val}<br/></span>)});
+        //callerName = this.props.callerName,
+        //text  = textNodes.replace('%callername%',callerName);
     //console.log("Text: " + JSON.stringify(text) + " Type " + typeof(text))
 
     return(
@@ -108,34 +50,32 @@ var AgentSpeech = React.createClass({
   }
 });
 
-var AgentSpeech01 = React.createElement(AgentSpeech,{text:agentSpeechText01});
-
-// <span className="glyphicon glyphicon-user"></span>
-var AgentSpeech00 = React.createClass({
-  render: function() {
-    return(
-      <div>
-        <ReactBootstrap.Table responsive>
-          <tbody><tr><td>{this.props.text.split("\n").map(function(i){return ({i})}) }</td></tr></tbody>
-        </ReactBootstrap.Table>
-      </div>
-    );
-  }
-});
-
 var TransferCall  = React.createClass({
+
+ /*
+  getInitialState: function() {
+    return {
+            acdCallerId:     '',
+            acdCallerName:   '',
+            acdIncomingCall: true,
+           };
+  },
+  */
+
   handleClick: function(e) {
     //var handlers = {success:this.onSuccess, error:this.onError};
     //this.props.onClick(e);
     //_REST.httpRequest('GET',this.props.baseUrl,'/clientConfig',{},handlers);
 
+    finesse.modules.CiscoFinesseGadget.log('React.TransferCall.handleClick()');
     finesse.modules.CiscoFinesseGadget.startCallTransfer();
   },
 
   render: function(){
+    //_log('React.TransferCall.render() props:' + JSON.stringify(this.props));
     return(
       <div>
-        <ReactBootstrap.Button bsStyle="primary" onClick={this.handleClick}>Transferir llamada</ReactBootstrap.Button>
+        <ReactBootstrap.Button bsStyle="primary" disabled={!this.props.acdIncomingCall} onClick={this.handleClick}>Transferir llamada</ReactBootstrap.Button>
       </div>
     );
   }
@@ -145,25 +85,69 @@ var TicketNumber  = React.createClass({
 
   getInitialState: function(){
     return {
-      ticketNumber: ''
+      ticketNumber: '',
+      ticketAssigned: false,
+      ticketNumberIsValid: false,
+      //acdIncomingCall: false,
+      showTicketAssignedAlert: false
     };
   },
 
-  setTicketNumber: function(val){
-    this.state.ticketNumber=val;
+  onSetTicketNumberSuccess: function(){},
+
+  onSetTicketNumberError: function(){},
+
+  onTicketNumberAssign: function(e){
+    var handlers = { success: this.onSetTicketNumberSuccess, error: this.onSetTicketNumberError};
+    this.state.target = e.target;
+
+    alert('Ticket asignado.');
+    // Send value of input field to server and then clear the input field
+    if (this.state.ticketNumber!==''){
+      var num = this.state.ticketNumber;
+      this.state.ticketNumber='';
+      finesse.modules.CiscoFinesseGadget.setTicketNumber(num,handlers);
+    }
+    setState({ticketNumber: ''});
+    setState({ticketAssigned: true});
+    //alert('Ticket Asignado');
   },
 
-  handleClick: function(e){
-    finesse.modules.CiscoFinesseGadget.setTicketNumber(this.state.ticketNumber);
+  onSetTicketNumberSuccess: function() {
+    //this.state.showTicketAssignedAlert = true;
+    //setTimeout(function(){this.state.showTicketAssignedAlert=false;}, 3000);
+  },
+
+  onSetTicketNumberError: function() {
+    alert('Error en asignación de ticket.');
+  },
+
+  setTicketNumber: function(e){
+    this.setState({ticketNumber: e.target.value});
+  },
+
+  handleButtonClick: function(e){
+    //finesse.modules.CiscoFinesseGadget.setTicketNumber(this.state.ticketNumber);
     this.state.ticketNumber = '';
+    //this.state.value = '';
     alert('Ticket asignado');
+    //this.props.onSubmit(e);
   },
 
   render: function(){
+    //_log('React.TicketNumber.render() props:' + JSON.stringify(this.props));
+
+    var value = this.state.ticketNumber;
     return(
       <div>
-        <InputField onChange={this.setTicketNumber}/>
-        <ReactBootstrap.Button bsStyle="primary" onClick={this.handleClick}>Asignar ticket</ReactBootstrap.Button>
+        <input  type='text'  disabled={!this.props.acdIncomingCall} onChange={this.setTicketNumber} value={value}/>
+        <span>&nbsp; &nbsp;</span>
+        <ReactBootstrap.OverlayTrigger placement="right" overlay={tooltip}>
+        <ReactBootstrap.Button bsStyle="primary" disabled={!this.props.acdIncomingCall && !this.props.ticketAssigned}
+          onClick={this.onTicketNumberAssign}>
+             Asignar ticket
+        </ReactBootstrap.Button>
+        </ReactBootstrap.OverlayTrigger>
       </div>
     );
   }
@@ -172,15 +156,23 @@ var TicketNumber  = React.createClass({
 var InputField = React.createClass({
   getInitialState: function() {
     return {
-      value: ''
+      value: this.props.value
     };
   },
 
+  // define the style based on the validity of the input data
   validationState: function() {
-    var length = this.state.value.length;
-    if (length > 10) return 'success';
-    else if (length > 5) return 'warning';
-    else if (length > 0) return 'error';
+
+    var re = new RegExp("\\w{2}\\d{6}"),
+        valid = re.test(this.state.value);
+
+    if (valid) { return 'sucess' }
+    else if (! valid){return 'error'};
+
+    //var length = this.state.value.length;
+    //if (length > 10) return 'success';
+    //else if (length > 5) return 'warning';
+    //else if (length > 0) return 'error';
   },
 
   handleChange: function() {
@@ -193,7 +185,7 @@ var InputField = React.createClass({
     return (
       <ReactBootstrap.Input
         type="text"
-        value={this.state.value}
+        value={this.props.value}
         placeholder=""
         label="Numero de ticket"
         help=""
@@ -207,104 +199,101 @@ var InputField = React.createClass({
   }
 });
 
-// {"acdIncomingCall":true,"acdCallUsername":"TREJO COPADO LUIS FERNANDO","acdCallUserid":"604952"}
-// React Callback: {"acdIncomingCall":true,"acdCallUsername":"TREJO COPADO LUIS FERNANDO","acdCallUserid":"604952"}
+// Main ReactJS Component
+var ReactCiscoFinesseGadget = React.createClass({
 
-var TransferButton = React.createClass({
+  getVersion: function(){
+    return REACT_GADGET_VERSION;
+  },
+
   getInitialState: function() {
     return {active: true,
             activeKey: '1',
-            acdCallUserid: '',
-            acdCallUsername: '',
-            acdIncomingCall: '',
+            acdCallerId:     '',
+            acdCallerName:   '',
+            //acdIncomingCall: true,
+            agentTeamName:   '',
+            gadgetConfig:    this.props.gadgetConfig,
             callState: '',
-            ticketNumber: ''
+            ticketNumber: '',
+            ticketNumberIsValid: false
            };
   },
 
-  // Create Callback on Cisco Finesse Gadget
+  setStateTicketNumber: function(num){
+      setState({'ticketNumber': num});
+  },
+
+  setStateTicketNumberIsValid: function(bool){
+      setState({'ticketNumberIsValid': bool})
+  },
+
+  onTicketNumberAssign: function(){
+    if (this.state.ticketNumber!==''){
+      finesse.modules.CiscoFinesseGadget.setTicketNumber(this.state.ticketNumber);
+    }
+  },
 
   componentWillMount: function(){
-    globalVar.reactCallback = function(data){
-      //alert('React Callback: ' + data.acdCallUserid );
-      //alert('This :' + JSON.stringify(this));
-      this.setState({acdCallUserid: data.acdCallUserid});
-      alert('New State: ' +  this.state.acdCallUserid );
-    };
+    _log("React.componentWillMount()");
   },
 
   componentDidMount: function(){
-      //alert('Mounted component');
-  },
-
-  onSuccess: function(rsp){
-    // {"status":200,"content":"{\"gadgetServerHost\":\"11.8.75.75\",\"gadgetServerPort\":\"8082\"}"}
-    alert(JSON.stringify(rsp));
-  },
-
-  onError: function(rsp){
-  },
-
-  handleClick: function(e) {
-    var handlers = {success:this.onSuccess, error:this.onError};
-
-    this.props.onClick(e);
-    _REST.httpRequest('GET',this.props.baseUrl,'/clientConfig',{},handlers);
-  },
-
-  _getLastContactsSuccess: function(){
-
-  },
-
-  _getLastContactsError:  function(){
-
+    _log('React.componentDidMount()');
   },
 
   handleSelect: function(activeKey){
-    this.setState({activeKey});
+    this.setState({activeKey: activeKey});
   },
 
-  // userIdIsValid(this.state.acdCallUserid)
-  render: function render() {
+  render: function() {
+    //_log('ReactCiscoFinesseGadget.render() props:' + JSON.stringify(this.props));
+
+    var createPanel = function(p,index) {
+         // Selective speech greeting the caller for both the identified caller case and the anonymous caller case
+         //_log('createPanel: p:' + p.class + '  ' + JSON.stringify(this.props));
+
+         if (p.class=='callergreeting') {
+           return (
+            <ReactBootstrap.Panel header={p.header} eventKey={p.key} key={p.key}>
+              <ReactBootstrap.Panel header="Speech">
+                <AgentSpeech text={userIdIsValid(this.props.acdCallerId) ? p.speechText: p.altSpeechText} callerName={this.props.acdCallerName} callerId={this.props.acdCallerId} />
+              </ReactBootstrap.Panel>
+            </ReactBootstrap.Panel>
+          );
+         // Simple speech text paragraph
+         } else if (p.class=='speech') {
+           return (
+             <ReactBootstrap.Panel header={p.header} eventKey={p.key} key={p.key}>
+                <ReactBootstrap.Panel header="Speech">
+                  <AgentSpeech text={userIdIsValid(this.props.acdCallerId) ? p.speechText: p.altSpeechText} callerName={this.props.acdCallerName} callerId={this.props.acdCallerId} />
+                </ReactBootstrap.Panel>
+             </ReactBootstrap.Panel>
+           );
+         } else if (p.class=='transfer') {
+           return (
+             <ReactBootstrap.Panel header={p.header} eventKey={p.key} key={p.key}>
+                <ReactBootstrap.Panel header="Asignación de ticket" key='1'>
+                  <TicketNumber acdIncomingCall={this.props.acdIncomingCall} />
+                </ReactBootstrap.Panel>
+                <ReactBootstrap.Panel header="Encuesta de evaluación" key='2'>
+                  <AgentSpeech text={p.speechText}/>
+                  <TransferCall acdIncomingCall={this.props.acdIncomingCall} />
+                </ReactBootstrap.Panel>
+             </ReactBootstrap.Panel>
+           );
+         };
+       };
+
+       gadgetConfig = this.state.gadgetConfig;
+
     return (
       <div>
-      <ReactBootstrap.PanelGroup activeKey={this.state.activeKey} onSelect={this.handleSelect} accordion>
-        <ReactBootstrap.Panel header="Bienvenida" eventKey="1">
-          <ReactBootstrap.Panel header="Speech">
-            <AgentSpeech text={ userIdIsValid(this.state.acdCallUserid) ? agentSpeechText01 : agentSpeechText0102 } />
-          </ReactBootstrap.Panel>
-        </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Indagación" eventKey="2">
-          <ReactBootstrap.Panel header="Speech">
-            <AgentSpeech text={agentSpeechText02} />
-          </ReactBootstrap.Panel>
-        </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Resolución" eventKey="3">
-          <ReactBootstrap.Panel header="Speech">
-            <AgentSpeech text={agentSpeechText03} />
-          </ReactBootstrap.Panel>
-        </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Cierre" eventKey="4">
-          <ReactBootstrap.Panel header="Speech">
-            <AgentSpeech text={agentSpeechText04} />
-          </ReactBootstrap.Panel>
-        </ReactBootstrap.Panel>
-        <ReactBootstrap.Panel header="Asignar ticket y enviar a encuesta" eventKey="5">
-          <ReactBootstrap.Panel header="Speech">
-            <AgentSpeech text={agentSpeechText05} />
-          </ReactBootstrap.Panel>
-          <ReactBootstrap.Panel header="Asignacion de ticket">
-            <TicketNumber/>
-          </ReactBootstrap.Panel>
-          <ReactBootstrap.Panel header="Encuesta de evaluacion">
-            <TransferCall/>
-          </ReactBootstrap.Panel>
-        </ReactBootstrap.Panel>
-      </ReactBootstrap.PanelGroup>
+        <ReactBootstrap.PanelGroup activeKey={this.state.activeKey} onSelect={this.handleSelect} accordion>
+           {gadgetConfig.map(createPanel,this)}
+        </ReactBootstrap.PanelGroup>
       </div>
     );
-    //return React.createElement('div',{onClick: this.handleClick},'Hello ',this.props.name);
-  }
-});
 
-//ReactDOM.render(React.createElement(TransferButton, {name:" Jim",onClick: function(){alert('hi')},baseUrl:baseUrl}), document.getElementById('content02'));
+  },
+});
