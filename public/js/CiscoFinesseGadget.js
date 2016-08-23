@@ -144,13 +144,17 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       _log = function(msg){
         var handlers = { success: _finesseRemoteLoggingSuccess, error: _finesseRemoteLoggingError},
             user = prefs.getString('extension'),
-            dateMs = _util.currentTimeMillis();
+            dateMs = _util.currentTimeMillis(),
+            userAgent = navigator.userAgent;
 
         // if enabled log locally with finesseLogging
         if (finesseEventsLogging=='true') {
             //clientLogs.log('FE:'+finesseEventsLogging);
             clientLogs.log(msg);
-            msg = dateMs + ' ' + msg;
+            //msg = dateMs + ' ' + msg;
+            var jsonMsg = {ua: userAgent, msg: msg},
+                msg     = JSON.stringify(jsonMsg);
+                
             _REST.httpRequest('POST',baseUrl,'/finesseLogging',{user: user, msg: msg},handlers)};
 
         // if enabled log to remote server

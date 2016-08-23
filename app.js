@@ -56,6 +56,7 @@ var hbs = exphbs.create({
 app.engine('handlebars', exphbs({defaultLayout: 'CiscoFinesseGadgets'}));
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
+app.set('trust proxy', true);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));

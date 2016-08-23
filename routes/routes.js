@@ -27,9 +27,10 @@ var clientConfig = { gadgetServerHost: nconf.get('gadgetHost'),
     rndString    =   utils.randomString(5),
     serverConfig = { rndString: rndString },
     serverIpAddr = utils.getIpAddress() || gadgetServerHost,
+    serverPort   = nconf.get('PORT') || nconf.get('gadgetPort'),
     gadgetConfig = null;
 
-console.log('IP: ' + serverIpAddr);
+logger.info('Gadget Server: ' + serverIpAddr + ':' + serverPort + '/gadget');
 
 require('fs').readFile('./config/' + nconf.get('gadgetConfig'), 'utf8', function (err,data) {
   if (err) throw err; // we'll not consider error handling for now
@@ -39,8 +40,20 @@ require('fs').readFile('./config/' + nconf.get('gadgetConfig'), 'utf8', function
 // Remote logging for Finesse Gadgets ------------------------------------------
 
 router.post('/finesseLogging', function(req,res){
+  var headers   = req.headers,
+      body      = req.body,
+      userIp    = req.ip,
+      userExt   = body.user,
+      userAgent = headers['user-agent'],
+      jsonMsg   = JSON.parse(body.msg);
 
-  logger.info(' ' + req.body.user + ' : ' + req.body.msg);
+  jsonMsg['ip'] = userIp;
+  jsonMsg['user'] = userExt;
+
+  logger.info(JSON.stringify(jsonMsg));
+
+  //logger.info(JSON.stringify(req.headers));
+  //logger.info(' ' + userIp + ' : ' + userAgent + ' : '+ req.body.user + ' : ' + req.body.msg);
 
   //req.date = new Date();
   //RemoteLoggingModel.add(req, res);
@@ -112,7 +125,7 @@ router.get('/gadget',function(req, res){
                                     gadgetScroll:     nconf.get('gadgetScroll'),
 			     	                        //gadgetServerHost: nconf.get('gadgetHost'),
                                     gadgetServerHost: serverIpAddr,
-                     	     	        gadgetServerPort: nconf.get('gadgetPort'),
+                     	     	        gadgetServerPort: serverPort,
                                     vxmlServerHost:   nconf.get('vxmlServerHost'),
                                     vxmlServerPort:   nconf.get('vxmlServerPort'),
                                     vxmlServerPath:   nconf.get('vxmlServerPath'),
