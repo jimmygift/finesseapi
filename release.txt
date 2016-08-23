@@ -7,19 +7,19 @@ ReactJS Dist Code
 Finesse notifications
 Timed events
 Gadget Reload                                    OK
-Consult call and transfer
+Consult call and transfer delay                  OK
 Gadget intercommunication
 Finesse error messages
 Notifiy Outbound/Inbound non ACD Calls
-Distributed Logging
-Publish events to kafka
+Distributed Logging                              OK
+Publish events to kafka                          OK
 Configuration database
 Editor UI
 Config UI
 
 Add basic exception reporting and handling        OK
 ReactJs errors on key                             OK
-Define multiple gadgets
+Define multiple gadgets                           OK
 Define custom call vars
 Log http static requests on nodejs                OK
 Webpack finesse gadget and reactJs components
@@ -36,8 +36,28 @@ React Alert on missing ticket
 
 
 Service with systemd
-load static resources with npm
+load static resources with npm                    OK
 
+Generalistic REST call for all of these cases
+ _postReferral()
+ _setTicketNumber()
+ _getLastContacts()
+
+Subscribe to timeticks service
+  ping() call
+  onCallTransferSuccess() 
+
+CiscoFinesseGadget.js as a general even processing framework
+
+myreacj.js as a general runtime and live dev environment
+
+Data input validation and confirmation on user entered data
+
+React Flux Architechture
+
+Proper timestamp for log events
+
+Logging of dialogs 
 
 
 Future Gadgets

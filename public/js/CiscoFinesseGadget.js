@@ -69,9 +69,6 @@ finesse.gadget = finesse.gadget || {};
 finesse.container = finesse.container || {};
 var clientLogs = finesse.cslogger.ClientLogger || {};
 
-// Closure to ReactJs
-var globalVar = {};
-
 // Gadget Config needed for instantiating ClientServices
 /** @namespace */
 finesse.gadget.Config = (function () {
@@ -100,7 +97,7 @@ finesse.gadget.Config = (function () {
 
 /** @namespace */
 finesse.modules = finesse.modules || {};
-finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
+finesse.modules.CiscoFinesseGadget = (function (_REST) {
 
   var user, dialogs, states, dialogActions,     // Finesse Objects
       dialogAcd, dialogConsult,                 // Gadget specific objects
@@ -131,15 +128,13 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
                    acdCallUserid:   ''},
 
       NO_MSG_HEIGHT = 30,
-      VERSION='0.845.05',
+      VERSION='0.845.08',
 
       _util=finesse.utilities.Utilities,
 
       // Mount point id for ReactJS user interface
       // mountPoint = document.getElementById('content02'),
       reactjsMountPoint = 'content02',
-
-      _log_ = function(msg,user,dialog){},
 
       _log = function(msg){
         var handlers = { success: _finesseRemoteLoggingSuccess, error: _finesseRemoteLoggingError},
@@ -162,6 +157,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
                   userExtension = user.getExtension(),
                   userTeamName  = user.getTeamName(),
                   userState     = user.getState(),
+                  timestamp     = user.getStateChangeTime(),
                   userRealName  = userLastName + ', ' + userFirstName;
                   //jsonMsg = {agentName: userRealName, agentExt: userExtension, msg: msg, ua: userAgent},
 
@@ -169,6 +165,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
               msgJson['agentExt']  = userExtension;
               msgJson['state']     = userState;
               msgJson['team']      = userTeamName;
+              msgJson['ts']        = timestamp;
               msgJson['ua']        = userAgent;
 
               msgTxt = JSON.stringify(msgJson);
@@ -616,10 +613,9 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       finesse.clientservices.ClientServices.init(finesse.gadget.Config);
 
       finesse.clientservices.ClientServices.registerOnConnectHandler(function(){
-        _log('BOSH connection established');
-        _log('ReactCiscoFinesseGadget version: ' + REACT_GADGET_VERSION);
-        _log('Finesse Gadget version: ' + VERSION );
-        _log('restRequest version: '    + _REST.getVersion());
+        var logTxt = 'BOSH connection established' + ' \nReactCiscoFinesseGadget version: ' + REACT_GADGET_VERSION
+                      + ' \nFinesse Gadget version: ' + VERSION + ' \nrestRequest version: '    + _REST.getVersion();
+        _log(logTxt);
       });
 
       finesse.clientservices.ClientServices.registerOnDisconnectHandler(function(){
@@ -702,7 +698,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
       _log(msg);
     }
   };
-}(jQuery,_REST));
+}(_REST));
 
 
 //setInterval(function(){ alert("Hello"); }, 15000);
