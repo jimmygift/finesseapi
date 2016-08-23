@@ -169,7 +169,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
               msgJson['agentExt']  = userExtension;
               msgJson['state']     = userState;
               msgJson['team']      = userTeamName;
-              //msgJson['ua']        = userAgent;
+              msgJson['ua']        = userAgent;
 
               msgTxt = JSON.stringify(msgJson);
             } else {
