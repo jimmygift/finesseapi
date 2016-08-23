@@ -639,6 +639,8 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
           //_log('GadgetViewChanged Action Event');
       });
 
+      containerServices.addHandler(TOPICS.TIMER_TICK_EVENT, function(e){ });
+
       //containerServices.activateMyTab();
       containerServices.makeActiveTabReq();
 
@@ -651,7 +653,7 @@ finesse.modules.CiscoFinesseGadget = (function ($,_REST) {
 
     // Tag call with ticket number. Include contactid for previously recorded calls
     // or leave it alone to refer to the current call.
-    setTicketNumber: function(ticketnumber,handelers){
+    setTicketNumber: function(ticketnumber,handlers){
       _setTicketNumber(ticketnumber,handlers);
     },
 

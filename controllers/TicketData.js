@@ -30,7 +30,7 @@ exports.findById = function(req,res){
   TicketDataModel.findById(req.params.id,  function(err, item){
     if(err) return  res.send(500, err.message);
 
-    logger.log('GET findById' + req.params.id );
+    logger.info('GET findById: ' + req.params.id );
     res.status(200).jsonp(item);
   });
 };
@@ -39,7 +39,7 @@ exports.findById = function(req,res){
 exports.add = function(req, res){
   var params = req.body;
 
-  logger.info('POST ticketNum:' + params.ticketNum  + ' contactId:' + params.contactId);
+  logger.info('POST ticketNum:' + params.ticketNum  + ' callId:' + params.callId);
 
   if (params.contactId && params.ticketNum && (!isNaN(params.contactId))) {
     // We're tagging a previously recorded call contact
@@ -63,7 +63,7 @@ exports.add = function(req, res){
       }
     });
   } else if (params.callId) {
-    console.log('Tagging an active call..');
+    logger.info('Tagging an active call..');
   }
 
 
@@ -82,10 +82,12 @@ exports.add = function(req, res){
   ticketData.save(function(err){
     if (err) {
       //return res.send(500, err.message);
+      res.status(200).jsonp(err);
+      logger.info('ticketData.save() error.');
     } else {
+      logger.info('ticketData.save() success.');
       res.status(200).jsonp(ticketData);
     }
-
   });
 };
 

@@ -8,12 +8,14 @@ var express = require('express'),
     mongoose     = require('mongoose'),
     bodyParser   = require('body-parser'),
     cookieParser = require('cookie-parser'),
+    KafkaRest = require('kafka-rest'),
     getIP = require('ipware')().get_ip,
     ON_DEATH = require('death')({uncaughtException: true, SIGHUP: true});
 
 var routes = require('./routes/routes'),
     utils  = require('./scripts/utils'),
-    logger = require('./scripts/logger.js');
+    logger = require('./scripts/logger.js')
+    kafka  = require('./scripts/kafka');
 
 // Setup nconf to use (in-order):
 //   1. Command-line arguments

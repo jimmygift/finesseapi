@@ -188,6 +188,7 @@ exports.duplicateProperty = function(objs,prop,newProp){
 };
 
 
+// Get IP address of host
 // http://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js
 
 exports.getIpAddress = function(){

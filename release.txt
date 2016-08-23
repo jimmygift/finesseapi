@@ -32,6 +32,11 @@ NodeJs get server ip address and port             OK
 Disable/enable gadget caching
 Remove jQuery dependency
 Pass ref to gadget to react component
+React Alert on missing ticket
+
+
+Service with systemd
+load static resources with npm
 
 
 

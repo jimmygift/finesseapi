@@ -42,8 +42,8 @@ router.post('/finesseLogging', function(req,res){
 
   logger.info(' ' + req.body.user + ' : ' + req.body.msg);
 
-  req.date = new Date();
-  RemoteLoggingModel.add(req, res);
+  //req.date = new Date();
+  //RemoteLoggingModel.add(req, res);
 });
 
 router.post('/pong', function(req,res){

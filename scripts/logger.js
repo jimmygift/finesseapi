@@ -30,4 +30,3 @@ module.exports.stream = {
     logger.info(message);
   }
 };
-

@@ -4,7 +4,7 @@
 babel --presets es2015,react myreact.js > ReactCode.js
 */
 
-var REACT_GADGET_VERSION = '0.840.26';
+var REACT_GADGET_VERSION = '0.840.27';
 var reValidation = "\\w{2}\\d{6}";
 
 function userIdIsValid(id) {
@@ -124,27 +124,32 @@ var TicketNumber = React.createClass({
     };
   },
 
-  onSetTicketNumberSuccess: function onSetTicketNumberSuccess() {},
+  onSetTicketNumberSuccess: function onSetTicketNumberSuccess() {
+    alert('Ticket asignado.');
+  },
 
-  onSetTicketNumberError: function onSetTicketNumberError() {},
+  onSetTicketNumberError: function onSetTicketNumberError() {
+    alert('Error en asignación de ticket.');
+  },
 
   onTicketNumberAssign: function onTicketNumberAssign(e) {
     var handlers = { success: this.onSetTicketNumberSuccess, error: this.onSetTicketNumberError };
     this.state.target = e.target;
 
-    alert('Ticket asignado.');
     // Send value of input field to server and then clear the input field
     if (this.state.ticketNumber !== '') {
       var num = this.state.ticketNumber;
-      this.state.ticketNumber = '';
+      this.setState({ ticketNumber: '' });
       finesse.modules.CiscoFinesseGadget.setTicketNumber(num, handlers);
-    }
-    setState({ ticketNumber: '' });
-    setState({ ticketAssigned: true });
+    };
+
+    this.setState({ ticketNumber: '' });
+    this.setState({ ticketAssigned: true });
     //alert('Ticket Asignado');
   },
 
   onSetTicketNumberSuccess: function onSetTicketNumberSuccess() {
+    alert('Ticket asignado.');
     //this.state.showTicketAssignedAlert = true;
     //setTimeout(function(){this.state.showTicketAssignedAlert=false;}, 3000);
   },
